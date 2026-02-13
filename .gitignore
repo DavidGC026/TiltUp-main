@@ -1,0 +1,12 @@
+node_modules
+dist
+.DS_Store
+server/public
+vite.config.ts.*
+*.tar.gz
+vendor
+.idea
+__pycache__/
+*.pyc
+shared/EXAMEN DIAGNÓSTICO_MODULO3.xlsx
+shared/EXAMEN_DIAGNÓSTICO_MODULO2.xlsx
