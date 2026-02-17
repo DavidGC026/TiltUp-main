@@ -15,13 +15,14 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, ArrowLeft, Eye, XCircle, CheckCircle2, ShieldCheck, CreditCard, UserCheck, Ban, Link2, Settings } from "lucide-react";
+import { Loader2, ArrowLeft, Eye, XCircle, CheckCircle2, ShieldCheck, CreditCard, UserCheck, Ban, Link2, Settings, Users } from "lucide-react";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { apiRequest } from "@/lib/queryClient";
+import { UserManagement } from "@/components/UserManagement";
 import { useToast } from "@/hooks/use-toast";
 
 interface ExamResultDetail {
@@ -171,8 +172,12 @@ export default function AdminDashboard() {
                     </Link>
                 </div>
 
-                <Tabs defaultValue="payments" className="space-y-6">
-                    <TabsList className="grid w-full grid-cols-4">
+                <Tabs defaultValue="users" className="space-y-6">
+                    <TabsList className="grid w-full grid-cols-5">
+                        <TabsTrigger value="users" className="flex items-center gap-2">
+                            <Users className="h-4 w-4" />
+                            Usuarios
+                        </TabsTrigger>
                         <TabsTrigger value="payments" className="flex items-center gap-2">
                             <CreditCard className="h-4 w-4" />
                             Pagos
@@ -184,17 +189,22 @@ export default function AdminDashboard() {
                         </TabsTrigger>
                         <TabsTrigger value="permissions" className="flex items-center gap-2">
                             <ShieldCheck className="h-4 w-4" />
-                            Permisos de Examen
+                            Permisos
                         </TabsTrigger>
                         <TabsTrigger value="config" className="flex items-center gap-2">
                             <Settings className="h-4 w-4" />
-                            Configuración
+                            Config
                         </TabsTrigger>
                         <TabsTrigger value="results" className="flex items-center gap-2">
                             <Eye className="h-4 w-4" />
                             Resultados
                         </TabsTrigger>
                     </TabsList>
+
+                    {/* TAB: User Management */}
+                    <TabsContent value="users">
+                        <UserManagement />
+                    </TabsContent>
 
                     {/* TAB: Payments Management */}
                     <TabsContent value="payments">

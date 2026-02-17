@@ -28,7 +28,7 @@ if (basename($_SERVER['SCRIPT_FILENAME']) === 'auth.php') {
             else if ($action === 'logout')
                 logout();
             else if ($action === 'register')
-                register();
+                json_response(['error' => 'Registration is only available through admin panel'], 403);
             else
                 json_response(['error' => 'Acción no válida'], 400);
             break;
@@ -55,13 +55,41 @@ function login()
         json_response(['error' => 'Usuario y contraseña requeridos'], 400);
     }
 
-    $stmt = $conn->prepare("SELECT id, username, password, role FROM users WHERE username = ?");
+    $stmt = $conn->prepare("SELECT id, username, password, role, account_status, access_expires_at FROM users WHERE username = ?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
     $result = $stmt->get_result();
 
     if ($user = $result->fetch_assoc()) {
         if (password_verify($password, $user['password'])) {
+            // Check account status
+            $account_status = $user['account_status'] ?? 'active';
+            
+            if ($account_status === 'deleted') {
+                json_response(['error' => 'Esta cuenta ha sido eliminada. Contacta al administrador.'], 403);
+            }
+            
+            if ($account_status === 'disabled') {
+                json_response(['error' => 'Esta cuenta ha sido desactivada. Contacta al administrador.'], 403);
+            }
+
+            // Check access expiration (auto-expire if needed)
+            if ($user['role'] !== 'admin' && !empty($user['access_expires_at'])) {
+                $expires = new DateTime($user['access_expires_at']);
+                $now = new DateTime();
+                if ($expires < $now) {
+                    // Auto-mark as expired
+                    $expire_stmt = $conn->prepare("UPDATE users SET account_status = 'expired' WHERE id = ?");
+                    $expire_stmt->bind_param("i", $user['id']);
+                    $expire_stmt->execute();
+                    json_response(['error' => 'Tu acceso ha expirado. Contacta al administrador para renovar tu cuenta.'], 403);
+                }
+            }
+
+            if ($account_status === 'expired') {
+                json_response(['error' => 'Tu acceso ha expirado. Contacta al administrador para renovar tu cuenta.'], 403);
+            }
+
             session_regenerate_id(true);
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['role'] = $user['role'];
