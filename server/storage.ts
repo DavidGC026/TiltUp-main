@@ -280,7 +280,10 @@ Duración estimada: 8 horas de estudio`,
         id: examData.id,
         sectionId: examData.sectionId,
         title: examData.title,
-        description: examData.description
+        description: examData.description,
+        requiresPayment: examData.requiresPayment ?? false,
+        paymentAmount: examData.paymentAmount ?? 0,
+        paymentLink: examData.paymentLink ?? null,
       };
       this.exams.set(exam.id, exam);
     });

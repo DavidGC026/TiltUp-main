@@ -13,9 +13,10 @@ interface PaymentModalProps {
     onClose: () => void;
     moduleId: string;
     onPaymentSuccess: () => void;
+    paymentLink?: string | null;
 }
 
-export function PaymentModal({ isOpen, onClose, moduleId, onPaymentSuccess }: PaymentModalProps) {
+export function PaymentModal({ isOpen, onClose, moduleId, onPaymentSuccess, paymentLink }: PaymentModalProps) {
     const { toast } = useToast();
     const queryClient = useQueryClient();
     const { user } = useAuth();
@@ -24,14 +25,23 @@ export function PaymentModal({ isOpen, onClose, moduleId, onPaymentSuccess }: Pa
         mutationFn: async () => {
             // Simulate API call delay
             await new Promise(resolve => setTimeout(resolve, 1500));
-            return apiRequest("POST", "/api/payments", { module_id: moduleId });
+            const res = await apiRequest("POST", "/api/payments", { module_id: moduleId });
+            return await res.json();
         },
-        onSuccess: () => {
-            toast({
-                title: "Pago Exitoso",
-                description: "El pago se ha procesado correctamente. Ahora puedes tomar el examen.",
-            });
+        onSuccess: (data: { success?: boolean; status?: string; message?: string }) => {
+            if (data.status === 'pending') {
+                toast({
+                    title: "Pago Reportado",
+                    description: "Tu pago ha sido reportado exitosamente. Un administrador lo revisará y aprobará tu acceso al examen.",
+                });
+            } else {
+                toast({
+                    title: "Pago Exitoso",
+                    description: "El pago se ha procesado correctamente. Ahora puedes tomar el examen.",
+                });
+            }
             queryClient.invalidateQueries({ queryKey: ["/api/payments", moduleId] });
+            queryClient.invalidateQueries({ queryKey: ["/api/exam_permissions"] });
             onPaymentSuccess();
             onClose();
         },
@@ -99,6 +109,27 @@ export function PaymentModal({ isOpen, onClose, moduleId, onPaymentSuccess }: Pa
                             {/* Payment Methods */}
                             <div className="pt-4 space-y-4">
                                 <p className="text-slate-600 mb-2 text-sm font-semibold">Métodos de Pago Disponibles:</p>
+
+                                {/* Conekta Payment Link (if configured) */}
+                                {paymentLink && (
+                                    <div className="border-2 border-blue-300 rounded-lg p-4 bg-blue-50 mb-4">
+                                        <h4 className="font-bold text-blue-800 mb-2 flex items-center">
+                                            <span className="bg-blue-100 text-blue-700 p-1.5 rounded-full mr-2">💳</span>
+                                            Pago en Línea (Conekta)
+                                        </h4>
+                                        <p className="text-xs text-blue-600 mb-3">
+                                            Paga de forma segura con tarjeta de crédito/débito o OXXO a través de Conekta.
+                                        </p>
+                                        <a
+                                            href={paymentLink}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center justify-center w-full h-10 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-sm uppercase tracking-wider text-sm transition-colors"
+                                        >
+                                            PAGAR CON CONEKTA →
+                                        </a>
+                                    </div>
+                                )}
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {/* Transferencia */}

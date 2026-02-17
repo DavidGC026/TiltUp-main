@@ -5,37 +5,55 @@ export const initialExams: Exam[] = [
     "id": "exam-sec-1-1",
     "sectionId": "sec-1-1",
     "title": "Examen Diagn\u00f3stico",
-    "description": "Preguntas y opciones importadas desde EXAMEN DIAGN\u00d3STICO.xlsx"
+    "description": "Preguntas y opciones importadas desde EXAMEN DIAGN\u00d3STICO.xlsx",
+    "requiresPayment": false,
+    "paymentAmount": 0,
+    "paymentLink": null
   },
   {
     "id": "exam-sec-1-5",
     "sectionId": "sec-1-5",
     "title": "Examen Final",
-    "description": "Examen Final generado a partir del Diagn\u00f3stico"
+    "description": "Examen Final generado a partir del Diagn\u00f3stico",
+    "requiresPayment": true,
+    "paymentAmount": 1000,
+    "paymentLink": null
   },
   {
     "id": "exam-sec-2-1",
     "sectionId": "sec-2-1",
     "title": "Examen Diagn\u00f3stico M\u00f3dulo 2",
-    "description": "Preguntas importadas desde EXAMEN_DIAGN\u00d3STICO_MODULO2.xlsx"
+    "description": "Preguntas importadas desde EXAMEN_DIAGN\u00d3STICO_MODULO2.xlsx",
+    "requiresPayment": false,
+    "paymentAmount": 0,
+    "paymentLink": null
   },
   {
     "id": "exam-sec-2-5",
     "sectionId": "sec-2-5",
     "title": "Examen Final M\u00f3dulo 2",
-    "description": "Examen Final generado a partir del Diagn\u00f3stico"
+    "description": "Examen Final generado a partir del Diagn\u00f3stico",
+    "requiresPayment": true,
+    "paymentAmount": 1000,
+    "paymentLink": null
   },
   {
     "id": "exam-sec-3-1",
     "sectionId": "sec-3-1",
     "title": "Examen Diagn\u00f3stico M\u00f3dulo 3",
-    "description": "Preguntas importadas desde EXAMEN DIAGN\u00d3STICO_MODULO3.xlsx"
+    "description": "Preguntas importadas desde EXAMEN DIAGN\u00d3STICO_MODULO3.xlsx",
+    "requiresPayment": false,
+    "paymentAmount": 0,
+    "paymentLink": null
   },
   {
     "id": "exam-sec-3-5",
     "sectionId": "sec-3-5",
     "title": "Examen Final M\u00f3dulo 3",
-    "description": "Examen Final generado a partir del Diagn\u00f3stico"
+    "description": "Examen Final generado a partir del Diagn\u00f3stico",
+    "requiresPayment": true,
+    "paymentAmount": 1000,
+    "paymentLink": null
   }
 ];
 

@@ -121,6 +121,10 @@ function rewriteUrl(path: string): string {
   else if (apiRoute.startsWith("/api/payments")) {
     targetPhp = "/api/payments.php";
   }
+  // Exam permissions: /api/exam_permissions -> /api/exam_permissions.php
+  else if (apiRoute.startsWith("/api/exam_permissions")) {
+    targetPhp = "/api/exam_permissions.php";
+  }
   else {
     // Fallback: append .php if missing
     if (!targetPhp.endsWith(".php")) {

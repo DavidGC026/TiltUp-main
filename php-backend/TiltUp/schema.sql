@@ -47,6 +47,44 @@ INSERT INTO sections (id, module_id, type, title, content, pdf_url, `order`, com
 ('sec-1-3', 'modulo-1', 'infographic', 'Infografía', 'Representación visual del flujo de diseño y planificación. Diagramas interactivos del proceso.', '/pdfs/modulo1/infografia.pdf', 3, FALSE),
 ('sec-1-4', 'modulo-1', 'data', 'Dato en Concreto', 'Estadísticas, normas y especificaciones técnicas. Datos reales de proyectos Tilt-Up exitosos.', '/pdfs/modulo1/datoenconcreto.pdf', 4, FALSE),
 ('sec-1-5', 'modulo-1', 'evaluation', 'Evaluación Final', 'Examen comprensivo para evaluar el dominio de los conceptos del módulo.', NULL, 5, FALSE);
+-- Add exam payment permission tables
+
+CREATE TABLE IF NOT EXISTS `user_payments` (
+  `id` varchar(50) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `module_id` varchar(50) NOT NULL,
+  `amount` decimal(10,2) NOT NULL DEFAULT 1000.00,
+  `status` enum('pending','completed','failed') NOT NULL DEFAULT 'pending',
+  `approved_by` int(11) DEFAULT NULL,
+  `approved_at` timestamp NULL DEFAULT NULL,
+  `admin_notes` text DEFAULT NULL,
+  `exam_id` varchar(50) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_user_payments_user` (`user_id`),
+  KEY `idx_user_payments_module` (`module_id`),
+  CONSTRAINT `fk_user_payments_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `exam_access_permissions` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `exam_id` varchar(50) NOT NULL,
+  `granted_by` int(11) NOT NULL,
+  `granted_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `revoked_at` timestamp NULL DEFAULT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `notes` text DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_exam_access_user` (`user_id`),
+  KEY `idx_exam_access_exam` (`exam_id`),
+  KEY `idx_exam_access_active` (`is_active`),
+  CONSTRAINT `fk_exam_access_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_exam_access_exam` FOREIGN KEY (`exam_id`) REFERENCES `exams` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_exam_access_granted_by` FOREIGN KEY (`granted_by`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Migration to add exam_results table
 
 CREATE TABLE IF NOT EXISTS `exam_results` (

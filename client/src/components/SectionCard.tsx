@@ -1,4 +1,4 @@
-import { CheckCircle2, HelpCircle, BookOpen, PieChart, BarChart3, ClipboardCheck, FileText } from "lucide-react";
+import { CheckCircle2, HelpCircle, BookOpen, PieChart, BarChart3, ClipboardCheck, FileText, Clock, Lock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -49,14 +49,10 @@ export function SectionCard({ section, onComplete, isLoading = false }: SectionC
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   // Check payment status only if it's an evaluation (Final Exam)
-  // Assuming "evaluation" type corresponds to the final exam that needs payment
-  const { data: paymentStatus, refetch: refetchPayment } = useQuery({
+  const { data: paymentStatus, refetch: refetchPayment } = useQuery<{ paid: boolean; payment_status?: string; payment_link?: string | null }>({
     queryKey: ["/api/payments", section.moduleId],
     enabled: section.type === "evaluation" && !!user,
     queryFn: async () => {
-      // Need to import apiRequest or just use fetch wrapper if queryClient isn't enough, 
-      // but typically we use a fetcher. Let's assume standard fetch for now or use the global fetcher if available.
-      // Re-using the logic from other components:
       const response = await fetch(`/api/payments.php?module_id=${section.moduleId}`);
       if (!response.ok) return { paid: false };
       return response.json();
@@ -123,19 +119,39 @@ export function SectionCard({ section, onComplete, isLoading = false }: SectionC
           )}
 
           {(section.type === "diagnostic" || section.type === "evaluation") && !section.completed && (
-            <Link
-              href={`/examen/${section.id}?moduleId=${section.moduleId}&type=${section.type}`}
-              className="w-full inline-block"
-              onClick={handleExamClick}
-            >
-              <Button
-                className="w-full"
-                variant="default"
+            <>
+              {/* Show pending payment indicator for evaluation exams */}
+              {section.type === "evaluation" && !paymentStatus?.paid && user?.role !== 'admin' && (
+                <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-md text-sm mb-2">
+                  {paymentStatus?.payment_status === 'pending' ? (
+                    <>
+                      <Clock className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                      <span className="text-amber-700 dark:text-amber-300">Pago reportado — esperando aprobación del administrador</span>
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                      <span className="text-amber-700 dark:text-amber-300">Requiere pago para acceder al examen final</span>
+                    </>
+                  )}
+                </div>
+              )}
+              <Link
+                href={`/examen/${section.id}?moduleId=${section.moduleId}&type=${section.type}`}
+                className="w-full inline-block"
+                onClick={handleExamClick}
               >
-                <ClipboardCheck className="w-4 h-4 mr-2" />
-                Tomar Examen
-              </Button>
-            </Link>
+                <Button
+                  className="w-full"
+                  variant="default"
+                >
+                  <ClipboardCheck className="w-4 h-4 mr-2" />
+                  {section.type === "evaluation" && !paymentStatus?.paid && user?.role !== 'admin'
+                    ? "Realizar Pago para Examen"
+                    : "Tomar Examen"}
+                </Button>
+              </Link>
+            </>
           )}
 
           {(section.type !== "diagnostic" && section.type !== "evaluation") && !section.completed && user?.role === 'admin' && (
@@ -162,9 +178,9 @@ export function SectionCard({ section, onComplete, isLoading = false }: SectionC
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
         moduleId={section.moduleId}
+        paymentLink={paymentStatus?.payment_link}
         onPaymentSuccess={() => {
           refetchPayment();
-          // Optionally auto-navigate or let user click again
         }}
       />
     </>

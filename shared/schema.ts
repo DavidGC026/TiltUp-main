@@ -50,6 +50,9 @@ export const exams = mysqlTable("exams", {
   sectionId: varchar("section_id", { length: 50 }).notNull().references(() => sections.id, { onDelete: "cascade" }),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
+  requiresPayment: boolean("requires_payment").notNull().default(false),
+  paymentAmount: int("payment_amount").notNull().default(1000),
+  paymentLink: varchar("payment_link", { length: 500 }),
 });
 
 export const examQuestions = mysqlTable("exam_questions", {
@@ -136,6 +139,34 @@ export const moduleFiles = mysqlTable("module_files", {
 
 export type ModuleFile = typeof moduleFiles.$inferSelect;
 export type InsertModuleFile = typeof moduleFiles.$inferInsert;
+
+export const examAccessPermissions = mysqlTable("exam_access_permissions", {
+  id: int("id").primaryKey().autoincrement(),
+  userId: int("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  examId: varchar("exam_id", { length: 50 }).notNull().references(() => exams.id, { onDelete: "cascade" }),
+  grantedBy: int("granted_by").notNull().references(() => users.id, { onDelete: "cascade" }),
+  grantedAt: timestamp("granted_at").defaultNow(),
+  revokedAt: timestamp("revoked_at"),
+  isActive: boolean("is_active").notNull().default(true),
+  notes: text("notes"),
+});
+
+export const userPayments = mysqlTable("user_payments", {
+  id: varchar("id", { length: 50 }).primaryKey(),
+  userId: int("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  moduleId: varchar("module_id", { length: 50 }).notNull(),
+  amount: int("amount").notNull().default(1000),
+  status: varchar("status", { length: 20, enum: ["pending", "completed", "failed"] }).default("pending"),
+  approvedBy: int("approved_by"),
+  approvedAt: timestamp("approved_at"),
+  adminNotes: text("admin_notes"),
+  examId: varchar("exam_id", { length: 50 }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow(),
+});
+
+export type ExamAccessPermission = typeof examAccessPermissions.$inferSelect;
+export type UserPayment = typeof userPayments.$inferSelect;
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
