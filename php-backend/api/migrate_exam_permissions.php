@@ -50,6 +50,27 @@ if ($conn->query($sql3)) {
     $errors[] = "Update evaluation exams: " . $conn->error;
 }
 
+// 3b. Create user_payments table if it doesn't exist
+$sql_up = "CREATE TABLE IF NOT EXISTS `user_payments` (
+  `id` varchar(50) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `module_id` varchar(50) NOT NULL,
+  `amount` decimal(10,2) NOT NULL DEFAULT 1000.00,
+  `status` enum('pending','completed','failed') NOT NULL DEFAULT 'pending',
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_user_payments_user` (`user_id`),
+  KEY `idx_user_payments_module` (`module_id`),
+  CONSTRAINT `fk_user_payments_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+
+if ($conn->query($sql_up)) {
+    $successes[] = "Created/ensured user_payments table";
+} else {
+    $errors[] = "user_payments table: " . $conn->error;
+}
+
 // 4. Add admin approval fields to user_payments
 $alterFields = [
     "ALTER TABLE `user_payments` ADD COLUMN `approved_by` INT(11) DEFAULT NULL",
