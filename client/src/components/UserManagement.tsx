@@ -64,16 +64,31 @@ interface ManagedUser {
 }
 
 const DURATION_PRESETS = [
-    { label: "24 horas", days: 1 },
-    { label: "48 horas", days: 2 },
-    { label: "72 horas", days: 3 },
-    { label: "1 semana", days: 7 },
-    { label: "1 mes", days: 30 },
-    { label: "3 meses", days: 90 },
-    { label: "6 meses", days: 180 },
-    { label: "1 año", days: 365 },
-    { label: "Permanente", days: 0 },
+    { label: "1 hora", value: "1h" },
+    { label: "2 horas", value: "2h" },
+    { label: "6 horas", value: "6h" },
+    { label: "12 horas", value: "12h" },
+    { label: "24 horas", value: "1d" },
+    { label: "48 horas", value: "2d" },
+    { label: "72 horas", value: "3d" },
+    { label: "1 semana", value: "7d" },
+    { label: "1 mes", value: "30d" },
+    { label: "3 meses", value: "90d" },
+    { label: "6 meses", value: "180d" },
+    { label: "1 año", value: "365d" },
+    { label: "Permanente", value: "0" },
 ];
+
+/**
+ * Parse a duration value to hours.
+ * Supports formats: "1h" (hours), "1d" (days), "0" (permanent), or plain number (days)
+ */
+function parseDurationToHours(value: string): number {
+    if (value === "0") return 0; // permanent
+    if (value.endsWith("h")) return parseInt(value) || 0;
+    if (value.endsWith("d")) return (parseInt(value) || 0) * 24;
+    return (parseInt(value) || 0) * 24; // default treat as days
+}
 
 export function UserManagement() {
     const queryClient = useQueryClient();
@@ -182,12 +197,16 @@ function CreateUserCard({
     const [displayName, setDisplayName] = useState("");
     const [password, setPassword] = useState("");
     const [role, setRole] = useState("user");
-    const [durationPreset, setDurationPreset] = useState("30");
-    const [customDays, setCustomDays] = useState("");
+    const [durationPreset, setDurationPreset] = useState("30d");
+    const [customValue, setCustomValue] = useState("");
+    const [customUnit, setCustomUnit] = useState("hours");
 
-    const getDurationDays = () => {
-        if (durationPreset === "custom") return parseInt(customDays) || 0;
-        return parseInt(durationPreset) || 0;
+    const getDurationHours = () => {
+        if (durationPreset === "custom") {
+            const val = parseInt(customValue) || 0;
+            return customUnit === "hours" ? val : val * 24;
+        }
+        return parseDurationToHours(durationPreset);
     };
 
     const createMutation = useMutation({
@@ -202,7 +221,7 @@ function CreateUserCard({
                     display_name: displayName || null,
                     password,
                     role,
-                    duration_days: getDurationDays(),
+                    duration_hours: getDurationHours(),
                 }),
             });
             const data = await res.json();
@@ -218,8 +237,9 @@ function CreateUserCard({
             setDisplayName("");
             setPassword("");
             setRole("user");
-            setDurationPreset("30");
-            setCustomDays("");
+            setDurationPreset("30d");
+            setCustomValue("");
+            setCustomUnit("hours");
         },
         onError: (error: Error) => {
             toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -291,7 +311,7 @@ function CreateUserCard({
                             </SelectTrigger>
                             <SelectContent>
                                 {DURATION_PRESETS.map((p) => (
-                                    <SelectItem key={p.days} value={p.days.toString()}>
+                                    <SelectItem key={p.value} value={p.value}>
                                         {p.label}
                                     </SelectItem>
                                 ))}
@@ -300,16 +320,30 @@ function CreateUserCard({
                         </Select>
                     </div>
                     {durationPreset === "custom" && (
-                        <div>
-                            <Label className="text-xs">Días personalizados</Label>
-                            <Input
-                                type="number"
-                                min="1"
-                                value={customDays}
-                                onChange={(e) => setCustomDays(e.target.value)}
-                                placeholder="Número de días"
-                            />
-                        </div>
+                        <>
+                            <div>
+                                <Label className="text-xs">Cantidad</Label>
+                                <Input
+                                    type="number"
+                                    min="1"
+                                    value={customValue}
+                                    onChange={(e) => setCustomValue(e.target.value)}
+                                    placeholder="Ej: 2"
+                                />
+                            </div>
+                            <div>
+                                <Label className="text-xs">Unidad</Label>
+                                <Select value={customUnit} onValueChange={setCustomUnit}>
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="hours">Horas</SelectItem>
+                                        <SelectItem value="days">Días</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </>
                     )}
                 </div>
                 <div className="mt-4">
@@ -551,13 +585,17 @@ function ExtendAccessDialog({
     toast: ReturnType<typeof useToast>["toast"];
 }) {
     const [open, setOpen] = useState(false);
-    const [durationPreset, setDurationPreset] = useState("30");
-    const [customDays, setCustomDays] = useState("");
+    const [durationPreset, setDurationPreset] = useState("30d");
+    const [customValue, setCustomValue] = useState("");
+    const [customUnit, setCustomUnit] = useState("hours");
     const [fromNow, setFromNow] = useState(true);
 
-    const getDurationDays = () => {
-        if (durationPreset === "custom") return parseInt(customDays) || 0;
-        return parseInt(durationPreset) || 0;
+    const getDurationHours = () => {
+        if (durationPreset === "custom") {
+            const val = parseInt(customValue) || 0;
+            return customUnit === "hours" ? val : val * 24;
+        }
+        return parseDurationToHours(durationPreset);
     };
 
     const extendMutation = useMutation({
@@ -568,7 +606,7 @@ function ExtendAccessDialog({
                 body: JSON.stringify({
                     action: 'extend_access',
                     user_id: user.id,
-                    duration_days: getDurationDays(),
+                    duration_hours: getDurationHours(),
                     from_now: fromNow,
                 }),
             });
@@ -614,7 +652,7 @@ function ExtendAccessDialog({
                             </SelectTrigger>
                             <SelectContent>
                                 {DURATION_PRESETS.map((p) => (
-                                    <SelectItem key={p.days} value={p.days.toString()}>
+                                    <SelectItem key={p.value} value={p.value}>
                                         {p.label}
                                     </SelectItem>
                                 ))}
@@ -624,15 +662,29 @@ function ExtendAccessDialog({
                     </div>
 
                     {durationPreset === "custom" && (
-                        <div>
-                            <Label>Días personalizados</Label>
-                            <Input
-                                type="number"
-                                min="1"
-                                value={customDays}
-                                onChange={(e) => setCustomDays(e.target.value)}
-                                placeholder="Número de días"
-                            />
+                        <div className="grid grid-cols-2 gap-2">
+                            <div>
+                                <Label>Cantidad</Label>
+                                <Input
+                                    type="number"
+                                    min="1"
+                                    value={customValue}
+                                    onChange={(e) => setCustomValue(e.target.value)}
+                                    placeholder="Ej: 2"
+                                />
+                            </div>
+                            <div>
+                                <Label>Unidad</Label>
+                                <Select value={customUnit} onValueChange={setCustomUnit}>
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="hours">Horas</SelectItem>
+                                        <SelectItem value="days">Días</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
                     )}
 

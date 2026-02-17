@@ -192,7 +192,14 @@ function handle_create_user($data) {
     $password = $data['password'] ?? '';
     $display_name = trim($data['display_name'] ?? '');
     $role = $data['role'] ?? 'user';
+    // Accept duration_hours (preferred) or duration_days (legacy)
+    $duration_hours = isset($data['duration_hours']) ? (int)$data['duration_hours'] : null;
     $duration_days = isset($data['duration_days']) ? (int)$data['duration_days'] : null;
+    
+    // Convert days to hours if only days provided
+    if ($duration_hours === null && $duration_days !== null) {
+        $duration_hours = $duration_days * 24;
+    }
 
     if (!$username || !$password) {
         json_response(['error' => 'Username and password are required'], 400);
@@ -222,20 +229,23 @@ function handle_create_user($data) {
 
     $hash = password_hash($password, PASSWORD_DEFAULT);
 
-    // Calculate expiration date
+    // Calculate expiration date based on hours
     $expires_at = null;
-    if ($duration_days !== null && $duration_days > 0) {
+    $stored_duration_days = null;
+    if ($duration_hours !== null && $duration_hours > 0) {
         $expires = new DateTime();
-        $expires->modify("+{$duration_days} days");
+        $expires->modify("+{$duration_hours} hours");
         $expires_at = $expires->format('Y-m-d H:i:s');
+        // Store original duration in days (for display), but keep hours precision
+        $stored_duration_days = ceil($duration_hours / 24);
     }
-    // duration_days = 0 or null means permanent
+    // duration_hours = 0 or null means permanent
 
     $stmt = $conn->prepare(
         "INSERT INTO users (username, password, email, display_name, role, access_expires_at, access_duration_days, account_status, created_by) 
          VALUES (?, ?, ?, ?, ?, ?, ?, 'active', ?)"
     );
-    $stmt->bind_param("ssssssii", $username, $hash, $email, $display_name, $role, $expires_at, $duration_days, $admin_id);
+    $stmt->bind_param("ssssssii", $username, $hash, $email, $display_name, $role, $expires_at, $stored_duration_days, $admin_id);
 
     if ($stmt->execute()) {
         json_response([
@@ -310,19 +320,25 @@ function handle_extend_access($data) {
     global $conn;
 
     $user_id = (int)($data['user_id'] ?? 0);
+    $duration_hours = isset($data['duration_hours']) ? (int)$data['duration_hours'] : null;
     $duration_days = isset($data['duration_days']) ? (int)$data['duration_days'] : null;
-    $from_now = $data['from_now'] ?? true; // If true, extend from now; if false, extend from current expiry
+    $from_now = $data['from_now'] ?? true;
+
+    // Convert days to hours if only days provided
+    if ($duration_hours === null && $duration_days !== null) {
+        $duration_hours = $duration_days * 24;
+    }
 
     if (!$user_id) {
         json_response(['error' => 'user_id required'], 400);
     }
 
-    if ($duration_days === null) {
-        json_response(['error' => 'duration_days required'], 400);
+    if ($duration_hours === null) {
+        json_response(['error' => 'duration_hours or duration_days required'], 400);
     }
 
-    // duration_days = 0 means permanent (remove expiration)
-    if ($duration_days === 0) {
+    // duration_hours = 0 means permanent (remove expiration)
+    if ($duration_hours === 0) {
         $stmt = $conn->prepare("UPDATE users SET access_expires_at = NULL, access_duration_days = NULL, account_status = 'active' WHERE id = ?");
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
@@ -334,7 +350,6 @@ function handle_extend_access($data) {
     if ($from_now) {
         $expires = new DateTime();
     } else {
-        // Get current expiration
         $stmt = $conn->prepare("SELECT access_expires_at FROM users WHERE id = ?");
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
@@ -342,7 +357,6 @@ function handle_extend_access($data) {
         
         if ($row && $row['access_expires_at']) {
             $expires = new DateTime($row['access_expires_at']);
-            // If already expired, start from now
             if ($expires < new DateTime()) {
                 $expires = new DateTime();
             }
@@ -351,11 +365,12 @@ function handle_extend_access($data) {
         }
     }
 
-    $expires->modify("+{$duration_days} days");
+    $expires->modify("+{$duration_hours} hours");
     $expires_str = $expires->format('Y-m-d H:i:s');
+    $stored_duration_days = ceil($duration_hours / 24);
 
     $stmt = $conn->prepare("UPDATE users SET access_expires_at = ?, access_duration_days = ?, account_status = 'active' WHERE id = ?");
-    $stmt->bind_param("sii", $expires_str, $duration_days, $user_id);
+    $stmt->bind_param("sii", $expires_str, $stored_duration_days, $user_id);
 
     if ($stmt->execute()) {
         json_response(['success' => true, 'message' => 'Access extended', 'access_expires_at' => $expires_str]);
