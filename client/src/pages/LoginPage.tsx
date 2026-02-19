@@ -83,7 +83,7 @@ export default function LoginPage() {
                         <div className="flex flex-col gap-3 mt-8">
                             <div className="flex items-center gap-3 text-gray-300">
                                 <CheckCircle2 className="w-5 h-5 text-[#0073a5]" />
-                                <span>Contenido actualizado 2024</span>
+                                <span>Contenido actualizado 2026</span>
                             </div>
                             <div className="flex items-center gap-3 text-gray-300">
                                 <CheckCircle2 className="w-5 h-5 text-[#0073a5]" />
@@ -97,7 +97,7 @@ export default function LoginPage() {
                     </div>
 
                     <div className="text-sm text-gray-400">
-                        © 2025 IMCYC. Todos los derechos reservados.
+                        © 2026 IMCYC. Todos los derechos reservados.
                     </div>
                 </div>
             </div>
