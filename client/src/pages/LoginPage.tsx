@@ -58,16 +58,23 @@ export default function LoginPage() {
 
                 {/* Contenido flotante */}
                 <div className="relative z-10 w-full h-full flex flex-col justify-between p-12 text-white">
-                    <div className="flex items-center gap-3">
+                    <div className="w-full flex justify-between items-start">
+                        <div className="flex items-center gap-3">
+                            <img
+                                src="https://grabador.imcyc.com/Imagenes/imcyc/Logo_imcyc.png"
+                                alt="IMCYC Logo"
+                                className="h-16 w-auto object-contain bg-white/10 p-2 rounded-lg backdrop-blur-sm"
+                            />
+                            <div>
+                                <h2 className="text-xl font-bold tracking-tight text-white">TiltUp Learn</h2>
+                                <p className="text-sm text-gray-300">Plataforma Educativa</p>
+                            </div>
+                        </div>
                         <img
-                            src="https://grabador.imcyc.com/Imagenes/imcyc/Logo_imcyc.png"
-                            alt="IMCYC Logo"
+                            src="https://grabador.imcyc.com/ImagenesImcycweb/TiltUp/BuiltBox-Logo-06.png"
+                            alt="BuiltBox Logo"
                             className="h-16 w-auto object-contain bg-white/10 p-2 rounded-lg backdrop-blur-sm"
                         />
-                        <div>
-                            <h2 className="text-xl font-bold tracking-tight text-white">TiltUp Learn</h2>
-                            <p className="text-sm text-gray-300">Plataforma Educativa</p>
-                        </div>
                     </div>
 
                     <div className="space-y-6 max-w-lg mb-12">
