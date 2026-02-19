@@ -20,6 +20,12 @@ export function Header() {
                 <h1 className="text-xl font-bold text-primary dark:text-white">TiltUp</h1>
                 <p className="text-xs text-muted-foreground hidden sm:block">Plataforma de Aprendizaje</p>
               </div>
+              <div className="h-8 w-px bg-border mx-2 hidden sm:block"></div>
+              <img
+                src="https://grabador.imcyc.com/ImagenesImcycweb/TiltUp/BuiltBox-Logo-06.png"
+                alt="BuiltBox Logo"
+                className="h-12 w-auto object-contain"
+              />
             </div>
           </Link>
 
