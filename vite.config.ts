@@ -34,7 +34,7 @@ export default defineConfig({
   },
   root: path.resolve(__dirname, "client"),
   build: {
-    outDir: path.resolve(__dirname, "dist", "public"),
+    outDir: path.resolve(__dirname, "dist"),
     emptyOutDir: true,
     rollupOptions: {
       plugins: [
@@ -42,7 +42,7 @@ export default defineConfig({
           name: 'copy-cmaps',
           writeBundle() {
             try {
-              const outDir = path.resolve(__dirname, "dist", "public");
+              const outDir = path.resolve(__dirname, "dist");
               const cmapsSrc = path.resolve(__dirname, "node_modules/pdfjs-dist/cmaps");
               const cmapsDest = path.join(outDir, "cmaps");
 
