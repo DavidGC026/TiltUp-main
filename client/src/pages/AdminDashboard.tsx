@@ -27,8 +27,11 @@ import { useToast } from "@/hooks/use-toast";
 
 interface ExamResultDetail {
     questionId: string;
+    questionText: string;
     selectedOptionId: string;
+    selectedOptionText: string;
     correctOptionId: string;
+    correctOptionText: string;
     isCorrect: boolean;
 }
 
@@ -371,7 +374,7 @@ export default function AdminDashboard() {
                             </CardHeader>
                             <CardContent>
                                 <p className="text-sm text-muted-foreground mb-4">
-                                    Configure enlaces de pago de Conekta (u otro proveedor) para cada examen final. 
+                                    Configure enlaces de pago de Conekta (u otro proveedor) para cada examen final.
                                     Cada examen tiene su propio enlace de pago independiente.
                                 </p>
                                 {allExams && allExams.length > 0 ? (
@@ -862,10 +865,10 @@ function DetailsDialog({ result }: { result: AdminResult }) {
                                     <XCircle className="h-4 w-4 text-red-500 mt-0.5" />
                                 )}
                                 <div>
-                                    <p className="font-medium">Pregunta ID: {detail.questionId}</p>
-                                    <p className="text-muted-foreground">Seleccionada: {detail.selectedOptionId}</p>
+                                    <p className="font-medium">Pregunta: {detail.questionText}</p>
+                                    <p className="text-muted-foreground">Seleccionada: {detail.selectedOptionText}</p>
                                     {!detail.isCorrect && (
-                                        <p className="text-green-600">Correcta: {detail.correctOptionId}</p>
+                                        <p className="text-green-600">Correcta: {detail.correctOptionText}</p>
                                     )}
                                 </div>
                             </div>
