@@ -9,6 +9,7 @@ import { useState, useRef } from "react";
 import { createPortal } from "react-dom";
 
 import { ExcelEditorContainer } from "./ExcelEditorContainer";
+import { BitacoraForm } from "./BitacoraForm";
 import { PDFViewer } from "./PDFViewer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,6 +46,7 @@ export function ModuleFileDownloader({ moduleId }: ModuleFileDownloaderProps) {
     const [isUploadOpen, setIsUploadOpen] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [editingFile, setEditingFile] = useState<ModuleFile | null>(null);
+    const [showBitacoraForm, setShowBitacoraForm] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const imageInputRef = useRef<HTMLInputElement>(null);
 
@@ -64,7 +66,7 @@ export function ModuleFileDownloader({ moduleId }: ModuleFileDownloaderProps) {
             const res = await fetch(url, {
                 method: "POST",
                 body: formData,
-                credentials: "include", 
+                credentials: "include",
             });
             if (!res.ok) {
                 const error = await res.json();
@@ -345,6 +347,28 @@ export function ModuleFileDownloader({ moduleId }: ModuleFileDownloaderProps) {
                 ))}
             </div>
 
+
+            {/* Botón para abrir el formulario de Bitácora de Campo */}
+            <div className="mt-6 p-4 border rounded-lg bg-muted/30">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h4 className="font-semibold text-base">Bitácora de Campo Tilt Up</h4>
+                        <p className="text-sm text-muted-foreground">Llena el formulario y genera tu bitácora en formato Excel con el diseño oficial.</p>
+                    </div>
+                    <Button
+                        onClick={() => setShowBitacoraForm(true)}
+                        className="gap-2"
+                    >
+                        <Edit className="h-4 w-4" />
+                        Llenar Bitácora
+                    </Button>
+                </div>
+            </div>
+
+            {showBitacoraForm && createPortal(
+                <BitacoraForm onClose={() => setShowBitacoraForm(false)} />,
+                document.body
+            )}
 
             {editingFile && createPortal(
                 <div className="fixed inset-0 z-[9999] bg-background w-screen h-screen">
