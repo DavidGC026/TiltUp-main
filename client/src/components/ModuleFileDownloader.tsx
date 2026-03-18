@@ -156,6 +156,43 @@ export function ModuleFileDownloader({ moduleId }: ModuleFileDownloaderProps) {
         }
     };
 
+    // Exportar PDF desde LuckySheet: envia el XLSX generado al backend export_bitacora.php
+    const handleExportPdf = async (blob: Blob) => {
+        try {
+            const form = new FormData();
+            form.append("file", blob, (editingFile?.title || "bitacora") + ".xlsx");
+            form.append("module_id", "modulo-4");
+            form.append("title", editingFile?.title || "Bitácora");
+            form.append("description", "Bitácora exportada desde LuckySheet");
+
+            const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
+            const url = `${basePath}/api/export_bitacora.php`;
+
+            const res = await fetch(url, {
+                method: "POST",
+                body: form,
+                credentials: "include",
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => null);
+                throw new Error(err?.error || `Error ${res.status}`);
+            }
+            const data = await res.json();
+            toast({
+                title: "Exportado a PDF",
+                description: "El archivo fue guardado y registrado en el Módulo 4.",
+            });
+            console.log("Export result:", data);
+        } catch (e: any) {
+            console.error(e);
+            toast({
+                title: "Error",
+                description: e.message || "No se pudo exportar a PDF",
+                variant: "destructive",
+            });
+        }
+    };
+
     const handleSaveFileAs = async (blob: Blob, newTitle: string) => {
         if (!editingFile) return;
 
@@ -366,7 +403,10 @@ export function ModuleFileDownloader({ moduleId }: ModuleFileDownloaderProps) {
             </div>
 
             {showBitacoraForm && createPortal(
-                <BitacoraForm onClose={() => setShowBitacoraForm(false)} />,
+                <BitacoraForm
+                    onClose={() => setShowBitacoraForm(false)}
+                // Dentro de módulo 4, solo guardamos en servidor y mostramos internamente
+                />,
                 document.body
             )}
 
@@ -379,7 +419,9 @@ export function ModuleFileDownloader({ moduleId }: ModuleFileDownloaderProps) {
                             onClose={() => setEditingFile(null)}
                             onSave={handleSaveFile}
                             onSaveAs={handleSaveFileAs}
+                            onExportPdf={handleExportPdf}
                             isOwner={editingFile.is_owner}
+                            isAdmin={isAdmin}
                         />
                     ) : (
                         <div className="flex flex-col h-full bg-background no-select">

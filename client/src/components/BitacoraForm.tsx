@@ -325,20 +325,14 @@ export function BitacoraForm({ onClose, apiBase }: BitacoraFormProps) {
                 throw new Error(err?.error ?? `Error del servidor (${response.status})`);
             }
 
-            const blob = await response.blob();
-            const filename =
-                response.headers.get("Content-Disposition")?.match(/filename="?([^"]+)"?/)?.[1]
-                ?? `bitacora_${folio}.xlsx`;
+            // Esperamos URLs (xlsx_url y pdf_url) para mostrarlas en el módulo.
+            const result = await response.json();
+            toast({ title: "Bitácora generada", description: "Los archivos fueron guardados en el servidor." });
 
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            URL.revokeObjectURL(link.href);
-
-            toast({ title: "Bitácora generada", description: `"${filename}" descargado correctamente.` });
+            // Opcional: mostrar links locales (sin descarga forzada)
+            if (result?.xlsx_url || result?.pdf_url) {
+                console.log("Bitácora generada:", result);
+            }
         } catch (error: any) {
             console.error("Error al generar bitácora:", error);
             toast({ title: "Error", description: error.message || "No se pudo generar la bitácora.", variant: "destructive" });
@@ -346,7 +340,6 @@ export function BitacoraForm({ onClose, apiBase }: BitacoraFormProps) {
             setIsSubmitting(false);
         }
     };
-
     // ─── Render ─────────────────────────────────────────────────────────────────
 
     return (

@@ -16,10 +16,17 @@
  */
 
 require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../config/db.php';
+
+// Asegurar sesión para obtener user_id
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 // require_once __DIR__ . '/../config/db.php';  // Descomenta si necesitas sesión
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf;
 
 // ─── CORS ────────────────────────────────────────────────────────────────────
 
@@ -304,33 +311,74 @@ if ($hojaC5) {
 
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// ███  GENERAR Y DEVOLVER EL ARCHIVO
+// ███  GENERAR Y GUARDAR XLSX + PDF EN SERVIDOR (sin descarga directa)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-$folio = preg_replace('/[^a-zA-Z0-9_-]/', '_', $data['folio']);
-$filename = "bitacora_{$folio}_" . date('Ymd_His') . '.xlsx';
-$tempFile = tempnam(sys_get_temp_dir(), 'bitacora_') . '.xlsx';
+$folioSafe = preg_replace('/[^a-zA-Z0-9_-]/', '_', $data['folio'] ?? 'SD');
+$timestamp = date('Ymd_His');
+
+// Directorio de salida: /uploads/bitacoras
+$baseUploads = realpath(__DIR__ . '/../../uploads');
+if ($baseUploads === false) {
+    $baseUploads = __DIR__ . '/../../uploads';
+}
+$bitacoraDir = $baseUploads . '/bitacoras';
+if (!is_dir($bitacoraDir)) {
+    mkdir($bitacoraDir, 0775, true);
+}
+
+$xlsxPath = "$bitacoraDir/bitacora_{$folioSafe}_{$timestamp}.xlsx";
+$pdfPath = "$bitacoraDir/bitacora_{$folioSafe}_{$timestamp}.pdf";
 
 try {
-    $writer = new Xlsx($spreadsheet);
-    $writer->save($tempFile);
+    // Guardar XLSX
+    $writerXlsx = new Xlsx($spreadsheet);
+    $writerXlsx->save($xlsxPath);
+
+    // Guardar PDF con mPDF
+    $writerPdf = new Mpdf($spreadsheet);
+    $writerPdf->writeAllSheets();
+    $writerPdf->save($pdfPath);
 }
 catch (\Exception $e) {
     http_response_code(500);
-    echo json_encode(['error' => 'Error al generar archivo: ' . $e->getMessage()]);
+    echo json_encode(['error' => 'Error al generar archivos: ' . $e->getMessage()]);
     exit;
 }
 
-// Enviar al cliente
-header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-header('Content-Disposition: attachment; filename="' . $filename . '"');
-header('Content-Length: ' . filesize($tempFile));
-header('Cache-Control: max-age=0');
+// URLs relativas para ser consumidas por el frontend (mismo dominio)
+$xlsxUrl = '/uploads/bitacoras/' . basename($xlsxPath);
+$pdfUrl = '/uploads/bitacoras/' . basename($pdfPath);
 
-readfile($tempFile);
+// Registrar ambos en module_files para que aparezcan en el Módulo 4
+$moduleId = 'modulo-4';
+$userId = isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : null; // asociar al usuario autenticado
+$desc = 'Bitácora generada desde el formulario';
 
-// Limpieza
-unlink($tempFile);
+// XLSX
+$titleXlsx = 'Bitácora XLSX ' . $folioSafe;
+$fileSizeX = file_exists($xlsxPath) ? filesize($xlsxPath) : 0;
+$fileTypeX = 'excel';
+$preview1 = null;
+$stmt = $conn->prepare("INSERT INTO module_files (module_id, user_id, title, description, file_path, file_type, file_size, preview_image_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+$stmt->bind_param('sissssis', $moduleId, $userId, $titleXlsx, $desc, $xlsxUrl, $fileTypeX, $fileSizeX, $preview1);
+$stmt->execute();
+
+// PDF
+$titlePdf = 'Bitácora PDF ' . $folioSafe;
+$fileSizeP = file_exists($pdfPath) ? filesize($pdfPath) : 0;
+$fileTypeP = 'pdf';
+$preview2 = null;
+$stmt = $conn->prepare("INSERT INTO module_files (module_id, user_id, title, description, file_path, file_type, file_size, preview_image_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+$stmt->bind_param('sissssis', $moduleId, $userId, $titlePdf, $desc, $pdfUrl, $fileTypeP, $fileSizeP, $preview2);
+$stmt->execute();
+
+header('Content-Type: application/json');
+echo json_encode([
+    'xlsx_url' => $xlsxUrl,
+    'pdf_url' => $pdfUrl,
+]);
+
 $spreadsheet->disconnectWorksheets();
 unset($spreadsheet);
 exit;

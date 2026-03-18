@@ -6,7 +6,7 @@ import "@fortune-sheet/react/dist/index.css";
 import LuckyExcel from "luckyexcel";
 import * as xlsx from "xlsx";
 import { Button } from "@/components/ui/button";
-import { Loader2, X, Save, Copy } from "lucide-react";
+import { Loader2, X, Save, Copy, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 
@@ -16,10 +16,12 @@ interface ExcelEditorContainerProps {
     onClose: () => void;
     onSave?: (blob: Blob) => Promise<void>;
     onSaveAs?: (blob: Blob, newTitle: string) => Promise<void>;
+    onExportPdf?: (blob: Blob) => Promise<void>;
     isOwner?: boolean;
+    isAdmin?: boolean;
 }
 
-export function ExcelEditorContainer({ fileUrl, fileName, onClose, onSave, onSaveAs, isOwner }: ExcelEditorContainerProps) {
+export function ExcelEditorContainer({ fileUrl, fileName, onClose, onSave, onSaveAs, onExportPdf, isOwner, isAdmin }: ExcelEditorContainerProps) {
     const { toast } = useToast();
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<any[]>([]);
@@ -27,6 +29,7 @@ export function ExcelEditorContainer({ fileUrl, fileName, onClose, onSave, onSav
     const [showSaveAsDialog, setShowSaveAsDialog] = useState(false);
     const [saveAsName, setSaveAsName] = useState("");
     const [pendingBlob, setPendingBlob] = useState<Blob | null>(null);
+    const [isExporting, setIsExporting] = useState(false);
     const workbookRef = useRef<any>(null);
 
     useEffect(() => {
@@ -40,7 +43,7 @@ export function ExcelEditorContainer({ fileUrl, fileName, onClose, onSave, onSav
                 LuckyExcel.transformExcelToLucky(file, (exportJson: any, luckysheetfile: any) => {
                     // Normalize data source
                     let sheetsToLoad = exportJson?.sheets?.length > 0 ? exportJson.sheets : luckysheetfile?.sheets;
-                    
+
                     if (sheetsToLoad?.length > 0) {
                         // Sanitize data to remove unsupported/buggy features
                         const sanitizedSheets = sheetsToLoad.map((sheet: any) => {
@@ -88,22 +91,22 @@ export function ExcelEditorContainer({ fileUrl, fileName, onClose, onSave, onSav
                         setData(sanitizedSheets);
                         setLoading(false);
                     } else {
-                         console.error("LuckyExcel returned no sheets", exportJson);
-                         toast({
+                        console.error("LuckyExcel returned no sheets", exportJson);
+                        toast({
                             title: "Error",
                             description: "No se pudo interpretar el archivo Excel.",
                             variant: "destructive"
-                         });
-                         setLoading(false);
+                        });
+                        setLoading(false);
                     }
                 }, (err: any) => {
                     console.error("LuckyExcel error:", err);
-                     toast({
+                    toast({
                         title: "Error",
                         description: "Error al leer el archivo Excel.",
                         variant: "destructive"
-                     });
-                     setLoading(false);
+                    });
+                    setLoading(false);
                 });
 
             } catch (error) {
@@ -122,13 +125,13 @@ export function ExcelEditorContainer({ fileUrl, fileName, onClose, onSave, onSav
 
     const handleSave = async () => {
         if (!workbookRef.current || !onSave) return;
-        
+
         try {
             setIsSaving(true);
             const sheets = workbookRef.current.getAllSheets();
-            
+
             const wb = xlsx.utils.book_new();
-            
+
             sheets.forEach((sheet: any) => {
                 const sheetData = sheet.data;
                 if (!sheetData) return;
@@ -138,14 +141,14 @@ export function ExcelEditorContainer({ fileUrl, fileName, onClose, onSave, onSav
                     const row: any[] = [];
                     const rowData = sheetData[r];
                     if (rowData) {
-                         for (let c = 0; c < rowData.length; c++) {
-                             const cell = rowData[c];
-                             let val = null;
-                             if (cell) {
-                                  val = cell.v !== undefined ? cell.v : null;
-                             }
-                             row.push(val);
-                         }
+                        for (let c = 0; c < rowData.length; c++) {
+                            const cell = rowData[c];
+                            let val = null;
+                            if (cell) {
+                                val = cell.v !== undefined ? cell.v : null;
+                            }
+                            row.push(val);
+                        }
                     }
                     aoa.push(row);
                 }
@@ -170,11 +173,56 @@ export function ExcelEditorContainer({ fileUrl, fileName, onClose, onSave, onSav
         }
     };
 
+    const handleExportPdf = async () => {
+        if (!workbookRef.current || !onExportPdf) return;
+        try {
+            setIsExporting(true);
+            const sheets = workbookRef.current.getAllSheets();
+            const wb = xlsx.utils.book_new();
+
+            sheets.forEach((sheet: any) => {
+                const sheetData = sheet.data;
+                if (!sheetData) return;
+                const aoa: any[][] = [];
+                for (let r = 0; r < sheetData.length; r++) {
+                    const row: any[] = [];
+                    const rowData = sheetData[r];
+                    if (rowData) {
+                        for (let c = 0; c < rowData.length; c++) {
+                            const cell = rowData[c];
+                            let val = null;
+                            if (cell) {
+                                val = cell.v !== undefined ? cell.v : null;
+                            }
+                            row.push(val);
+                        }
+                    }
+                    aoa.push(row);
+                }
+                const ws = xlsx.utils.aoa_to_sheet(aoa);
+                xlsx.utils.book_append_sheet(wb, ws, sheet.name);
+            });
+
+            const wbout = xlsx.write(wb, { bookType: 'xlsx', type: 'array' });
+            const blob = new Blob([wbout], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+            await onExportPdf(blob);
+        } catch (error: any) {
+            console.error("Error exportando a PDF:", error);
+            toast({
+                title: "Error",
+                description: error.message || "No se pudo exportar a PDF.",
+                variant: "destructive"
+            });
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
     const buildBlob = (): Blob | null => {
         if (!workbookRef.current) return null;
         const sheets = workbookRef.current.getAllSheets();
         const wb = xlsx.utils.book_new();
-        
+
         sheets.forEach((sheet: any) => {
             const sheetData = sheet.data;
             if (!sheetData) return;
@@ -260,14 +308,20 @@ export function ExcelEditorContainer({ fileUrl, fileName, onClose, onSave, onSav
         <div className="flex flex-col h-screen w-screen bg-background fixed inset-0 z-[9999]">
             <div className="flex items-center justify-between p-2 border-b bg-white shadow-sm z-50">
                 <div className="flex items-center gap-2">
-                     <h3 className="font-semibold text-lg ml-2">{fileName}</h3>
-                     {!isOwner && <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">Modo Copia</span>}
+                    <h3 className="font-semibold text-lg ml-2">{fileName}</h3>
+                    {!(isOwner || isAdmin) && <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">Modo Copia</span>}
                 </div>
                 <div className="flex items-center gap-2">
-                    {isOwner && onSave && (
+                    {(isOwner || isAdmin) && onSave && (
                         <Button onClick={handleSave} disabled={isSaving} size="sm" className="gap-2">
                             {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                             Guardar
+                        </Button>
+                    )}
+                    {onExportPdf && (
+                        <Button onClick={handleExportPdf} disabled={isExporting} size="sm" variant="secondary" className="gap-2">
+                            {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+                            Exportar PDF
                         </Button>
                     )}
                     {onSaveAs && (
@@ -290,7 +344,7 @@ export function ExcelEditorContainer({ fileUrl, fileName, onClose, onSave, onSav
                         data={data}
                         lang="es"
                         showToolbar={true}
-                        onChange={() => {}}
+                        onChange={() => { }}
                     />
                 )}
             </div>
