@@ -1,6 +1,27 @@
 <?php
 require_once '../config/db.php';
 
+// Asegurar límites suficientes para PDFs (ej. 2.5MB) y evitar 400 por tamaño
+ini_set('upload_max_filesize', '20M');
+ini_set('post_max_size', '20M');
+ini_set('max_execution_time', '120');
+ini_set('max_input_time', '120');
+
+function detailed_upload_error($code)
+{
+    // Fuente: https://www.php.net/manual/en/features.file-upload.errors.php
+    $map = [
+        UPLOAD_ERR_INI_SIZE => 'El archivo excede upload_max_filesize',
+        UPLOAD_ERR_FORM_SIZE => 'El archivo excede MAX_FILE_SIZE',
+        UPLOAD_ERR_PARTIAL => 'El archivo se subió parcialmente',
+        UPLOAD_ERR_NO_FILE => 'No se subió ningún archivo',
+        UPLOAD_ERR_NO_TMP_DIR => 'Falta el directorio temporal',
+        UPLOAD_ERR_CANT_WRITE => 'No se pudo escribir en disco',
+        UPLOAD_ERR_EXTENSION => 'Una extensión de PHP detuvo la subida',
+    ];
+    return $map[$code] ?? 'Error desconocido';
+}
+
 // Ensure user is logged in
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -119,11 +140,17 @@ elseif ($method === 'POST') {
     $file_size = 0;
     $preview_db_path = null;
 
-    if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
+    if (isset($_FILES['file'])) {
+        if ($_FILES['file']['error'] !== UPLOAD_ERR_OK) {
+            json_response(['error' => detailed_upload_error($_FILES['file']['error'])], 400);
+        }
+
         $upload_dir = '../uploads/module_files/';
         if (!is_dir($upload_dir)) {
             mkdir($upload_dir, 0755, true);
         }
+        // Ensure directory is writable by web user to avoid silent 400s
+        @chmod($upload_dir, 0755);
 
         $original_name = basename($_FILES['file']['name']);
         $ext = strtolower(pathinfo($original_name, PATHINFO_EXTENSION));
@@ -148,7 +175,7 @@ elseif ($method === 'POST') {
             $file_size = $_FILES['file']['size'];
         }
         else {
-            json_response(['error' => 'Error al mover archivo subido'], 500);
+            json_response(['error' => 'Error al mover archivo subido (permisos o espacio en disco)'], 500);
         }
     }
     elseif ($existing_file) {

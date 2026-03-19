@@ -2,12 +2,18 @@ import express, { type Request, Response, NextFunction } from "express";
 import path from "path";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 
-// Servir archivos estáticos desde attached_assets
-app.use('/generated_images', express.static(path.join(import.meta.dirname, '..', 'attached_assets', 'generated_images')));
-app.use('/pdfs', express.static(path.join(import.meta.dirname, '..', 'attached_assets', 'pdfs')));
+// Servir archivos estáticos desde attached_assets y uploads
+app.use('/generated_images', express.static(path.join(__dirname, '..', 'attached_assets', 'generated_images')));
+app.use('/pdfs', express.static(path.join(__dirname, '..', 'attached_assets', 'pdfs')));
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 declare module 'http' {
   interface IncomingMessage {

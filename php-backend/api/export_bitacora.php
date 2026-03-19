@@ -5,6 +5,13 @@
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../config/db.php';
 
+// Levantar límites para permitir generación de PDF con imágenes
+ini_set('upload_max_filesize', '50M');
+ini_set('post_max_size', '50M');
+ini_set('memory_limit', '512M');
+ini_set('max_execution_time', '180');
+ini_set('max_input_time', '180');
+
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf;
@@ -48,6 +55,7 @@ $bitacoraDir = $baseUploads . '/bitacoras';
 if (!is_dir($bitacoraDir)) {
     mkdir($bitacoraDir, 0775, true);
 }
+@chmod($bitacoraDir, 0775);
 
 // Guardar XLSX subido
 $ext = strtolower(pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION));

@@ -1,0 +1,14 @@
+<IfModule mod_php.c>
+  php_value upload_max_filesize 20M
+  php_value post_max_size 20M
+  php_value max_execution_time 120
+  php_value max_input_time 120
+  php_flag file_uploads On
+</IfModule>
+
+# Fallback for environments using PHP-FPM with SetHandler/ProxyPassMatch
+<IfModule mod_fcgid.c>
+  FcgidMaxRequestLen 20971520
+</IfModule>
+
+# If LimitRequestBody is enforced elsewhere, you may need to adjust in vhost

@@ -11,6 +11,7 @@ import ExamPage from "@/pages/ExamPage";
 import AdminDashboard from "@/pages/AdminDashboard";
 import LoginPage from "@/pages/LoginPage";
 import NotFound from "@/pages/not-found";
+import LibraryPage from "@/pages/LibraryPage";
 
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { Loader2 } from "lucide-react";
@@ -45,6 +46,7 @@ function AppRouter() {
     <Switch>
       <Route path="/login" component={LoginPage} />
       <Route path="/" component={() => <ProtectedRoute component={Home} />} />
+      <Route path="/biblioteca" component={() => <ProtectedRoute component={LibraryPage} />} />
       <Route path="/modulo/:id" component={() => <ProtectedRoute component={ModuleDetail} />} />
       <Route path="/pdf" component={() => <ProtectedRoute component={PDFViewPage} />} />
       <Route path="/examen/:sectionId" component={() => <ProtectedRoute component={ExamPage} />} />

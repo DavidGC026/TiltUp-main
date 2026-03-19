@@ -3,6 +3,8 @@ import { ModuleCard } from "@/components/ModuleCard";
 import { Header } from "@/components/Header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
+import { Link } from "wouter";
+import { BookOpen } from "lucide-react";
 import type { Module } from "@shared/schema";
 
 export default function Home() {
@@ -51,6 +53,19 @@ export default function Home() {
                   <ModuleCard module={module} />
                 </div>
               ))}
+
+              {/* Módulo extra para la Biblioteca */}
+              <div className="md:col-span-2 lg:col-span-2 md:col-start-2 lg:col-start-2 mt-4">
+                <Link href="/biblioteca">
+                  <div className="bg-gradient-to-r from-amber-50 to-orange-50 backdrop-blur-sm rounded-lg shadow-lg border-2 border-amber-200/50 h-full min-h-[220px] flex flex-col items-center justify-center p-6 hover:scale-[1.02] hover:shadow-xl transition-all duration-300 group cursor-pointer text-center gap-4 relative overflow-hidden">
+                    {/* Decoración estilo libro */}
+                    <div className="absolute left-0 top-0 bottom-0 w-3 border-r-2 border-black/5 bg-amber-600/20 shadow-inner"></div>
+                    
+                    <BookOpen className="w-20 h-20 text-amber-700 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300" strokeWidth={1.5} />
+                    <h3 className="text-3xl font-bold text-amber-900 drop-shadow-sm font-serif">Ver Biblioteca</h3>
+                  </div>
+                </Link>
+              </div>
             </div>
           )}
 

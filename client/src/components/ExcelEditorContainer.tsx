@@ -32,6 +32,94 @@ export function ExcelEditorContainer({ fileUrl, fileName, onClose, onSave, onSav
     const [isExporting, setIsExporting] = useState(false);
     const workbookRef = useRef<any>(null);
 
+    // Helpers to preserve widths/merges when exporting
+    const buildWorksheet = (sheet: any) => {
+        const sheetData = sheet.data;
+        if (!sheetData) return null;
+
+        // Build AOA
+        const aoa: any[][] = [];
+        let maxCols = 0;
+        for (let r = 0; r < sheetData.length; r++) {
+            const row: any[] = [];
+            const rowData = sheetData[r];
+            if (rowData) {
+                for (let c = 0; c < rowData.length; c++) {
+                    const cell = rowData[c];
+                    let val = null;
+                    if (cell) {
+                        val = cell.v !== undefined ? cell.v : null;
+                    }
+                    row.push(val);
+                }
+                maxCols = Math.max(maxCols, row.length);
+            } else {
+                row.length = maxCols;
+            }
+            aoa.push(row);
+        }
+
+        const ws = xlsx.utils.aoa_to_sheet(aoa);
+
+        // Merges from config.merge
+        const cfg = sheet.config || {};
+        if (cfg.merge && typeof cfg.merge === 'object') {
+            const merges: any[] = [];
+            Object.values(cfg.merge).forEach((m: any) => {
+                if (m && typeof m === 'object') {
+                    const rs = m.rs ?? 1;
+                    const cs = m.cs ?? 1;
+                    merges.push({
+                        s: { r: m.r, c: m.c },
+                        e: { r: m.r + rs - 1, c: m.c + cs - 1 }
+                    });
+                }
+            });
+            if (merges.length) ws['!merges'] = merges;
+        }
+
+        // Column widths
+        const colLen = cfg.columnlen && typeof cfg.columnlen === 'object' ? cfg.columnlen : {};
+        if (Object.keys(colLen).length) {
+            const cols: any[] = [];
+            const colCount = Math.max(maxCols, ...Object.keys(colLen).map(k => parseInt(k, 10) + 1));
+            for (let i = 0; i < colCount; i++) {
+                const px = colLen[i] ?? null;
+                cols[i] = px ? { wch: Math.max(1, Math.round(px / 7)) } : {};
+            }
+            ws['!cols'] = cols;
+        }
+
+        // Row heights
+        const rowLen = cfg.rowlen && typeof cfg.rowlen === 'object' ? cfg.rowlen : {};
+        if (Object.keys(rowLen).length) {
+            const rows: any[] = [];
+            const rowCount = Math.max(aoa.length, ...Object.keys(rowLen).map(k => parseInt(k, 10) + 1));
+            for (let i = 0; i < rowCount; i++) {
+                const px = rowLen[i] ?? null;
+                rows[i] = px ? { hpt: Math.round((px * 72) / 96) } : {};
+            }
+            ws['!rows'] = rows;
+        }
+
+        // Basic borders (outline) preservation is non-trivial via xlsx utils; keeping structural elements above.
+        return ws;
+    };
+
+    const buildWorkbook = () => {
+        if (!workbookRef.current) return null;
+        const sheets = workbookRef.current.getAllSheets();
+        const wb = xlsx.utils.book_new();
+
+        sheets.forEach((sheet: any) => {
+            const ws = buildWorksheet(sheet);
+            if (ws) {
+                xlsx.utils.book_append_sheet(wb, ws, sheet.name);
+            }
+        });
+        return wb;
+    };
+
     useEffect(() => {
         const loadExcel = async () => {
             try {
@@ -128,35 +216,8 @@ export function ExcelEditorContainer({ fileUrl, fileName, onClose, onSave, onSav
 
         try {
             setIsSaving(true);
-            const sheets = workbookRef.current.getAllSheets();
-
-            const wb = xlsx.utils.book_new();
-
-            sheets.forEach((sheet: any) => {
-                const sheetData = sheet.data;
-                if (!sheetData) return;
-
-                const aoa: any[][] = [];
-                for (let r = 0; r < sheetData.length; r++) {
-                    const row: any[] = [];
-                    const rowData = sheetData[r];
-                    if (rowData) {
-                        for (let c = 0; c < rowData.length; c++) {
-                            const cell = rowData[c];
-                            let val = null;
-                            if (cell) {
-                                val = cell.v !== undefined ? cell.v : null;
-                            }
-                            row.push(val);
-                        }
-                    }
-                    aoa.push(row);
-                }
-
-                const ws = xlsx.utils.aoa_to_sheet(aoa);
-                xlsx.utils.book_append_sheet(wb, ws, sheet.name);
-            });
-
+            const wb = buildWorkbook();
+            if (!wb) throw new Error('No se pudo construir el libro.');
             const wbout = xlsx.write(wb, { bookType: 'xlsx', type: 'array' });
             const blob = new Blob([wbout], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
 
@@ -177,32 +238,8 @@ export function ExcelEditorContainer({ fileUrl, fileName, onClose, onSave, onSav
         if (!workbookRef.current || !onExportPdf) return;
         try {
             setIsExporting(true);
-            const sheets = workbookRef.current.getAllSheets();
-            const wb = xlsx.utils.book_new();
-
-            sheets.forEach((sheet: any) => {
-                const sheetData = sheet.data;
-                if (!sheetData) return;
-                const aoa: any[][] = [];
-                for (let r = 0; r < sheetData.length; r++) {
-                    const row: any[] = [];
-                    const rowData = sheetData[r];
-                    if (rowData) {
-                        for (let c = 0; c < rowData.length; c++) {
-                            const cell = rowData[c];
-                            let val = null;
-                            if (cell) {
-                                val = cell.v !== undefined ? cell.v : null;
-                            }
-                            row.push(val);
-                        }
-                    }
-                    aoa.push(row);
-                }
-                const ws = xlsx.utils.aoa_to_sheet(aoa);
-                xlsx.utils.book_append_sheet(wb, ws, sheet.name);
-            });
-
+            const wb = buildWorkbook();
+            if (!wb) throw new Error('No se pudo construir el libro.');
             const wbout = xlsx.write(wb, { bookType: 'xlsx', type: 'array' });
             const blob = new Blob([wbout], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
             await onExportPdf(blob);
@@ -219,33 +256,8 @@ export function ExcelEditorContainer({ fileUrl, fileName, onClose, onSave, onSav
     };
 
     const buildBlob = (): Blob | null => {
-        if (!workbookRef.current) return null;
-        const sheets = workbookRef.current.getAllSheets();
-        const wb = xlsx.utils.book_new();
-
-        sheets.forEach((sheet: any) => {
-            const sheetData = sheet.data;
-            if (!sheetData) return;
-            const aoa: any[][] = [];
-            for (let r = 0; r < sheetData.length; r++) {
-                const row: any[] = [];
-                const rowData = sheetData[r];
-                if (rowData) {
-                    for (let c = 0; c < rowData.length; c++) {
-                        const cell = rowData[c];
-                        let val = null;
-                        if (cell) {
-                            val = cell.v !== undefined ? cell.v : null;
-                        }
-                        row.push(val);
-                    }
-                }
-                aoa.push(row);
-            }
-            const ws = xlsx.utils.aoa_to_sheet(aoa);
-            xlsx.utils.book_append_sheet(wb, ws, sheet.name);
-        });
-
+        const wb = buildWorkbook();
+        if (!wb) return null;
         const wbout = xlsx.write(wb, { bookType: 'xlsx', type: 'array' });
         return new Blob([wbout], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
     };

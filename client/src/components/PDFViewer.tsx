@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import * as pdfjsLib from "pdfjs-dist";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight, Maximize, Minimize } from "lucide-react";
+import { ChevronLeft, ChevronRight, Maximize, Minimize, Shield } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 // Set up worker with local asset (copied to public/pdf.worker.min.js)
 // Using standard JS worker instead of MJS to avoid MIME type issues
@@ -22,11 +22,13 @@ export function PDFViewer({ pdfUrl, title, onFinish }: PDFViewerProps) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isContextOpen, setIsContextOpen] = useState(false);
   const { user } = useAuth();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pdfDocRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const renderTaskRef = useRef<any>(null);
 
   // Load and render PDF
   useEffect(() => {
@@ -59,6 +61,11 @@ export function PDFViewer({ pdfUrl, title, onFinish }: PDFViewerProps) {
       if (!pdfDocRef.current || !canvasRef.current || !numPages) return;
 
       try {
+        // Cancel any in-flight render to avoid canvas reuse errors
+        if (renderTaskRef.current && renderTaskRef.current.cancel) {
+          try { renderTaskRef.current.cancel(); } catch { /* ignore */ }
+        }
+
         const page = await pdfDocRef.current.getPage(pageNumber);
         const viewport = page.getViewport({ scale });
 
@@ -69,13 +76,17 @@ export function PDFViewer({ pdfUrl, title, onFinish }: PDFViewerProps) {
         canvas.width = viewport.width;
         canvas.height = viewport.height;
 
-        await page.render({
+        const renderTask = page.render({
           canvasContext: context,
           viewport: viewport,
-        }).promise;
+          intent: 'display'
+        });
+        renderTaskRef.current = renderTask;
+        await renderTask.promise;
 
         console.log(`Página ${pageNumber} renderizada`);
       } catch (err) {
+        if ((err as any)?.name === 'RenderingCancelledException') return;
         console.error('Error renderizando página:', err);
       }
     };
@@ -91,6 +102,36 @@ export function PDFViewer({ pdfUrl, title, onFinish }: PDFViewerProps) {
 
     document.addEventListener("fullscreenchange", handleFullscreenChange);
     return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
+  // Prevent context menu to discourage downloads / printing via context
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      e.preventDefault();
+      setIsContextOpen(true);
+      setTimeout(() => setIsContextOpen(false), 1200);
+    };
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener("contextmenu", handler);
+    }
+    return () => {
+      if (container) container.removeEventListener("contextmenu", handler);
+    };
+  }, []);
+
+  // Block common print/save shortcuts (Ctrl/Cmd+P, Ctrl/Cmd+S)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const key = e.key.toLowerCase();
+      if ((e.ctrlKey || e.metaKey) && (key === "p" || key === "s")) {
+        e.preventDefault();
+        setIsContextOpen(true);
+        setTimeout(() => setIsContextOpen(false), 1200);
+      }
+    };
+    window.addEventListener("keydown", handler, { capture: true });
+    return () => window.removeEventListener("keydown", handler, { capture: true } as any);
   }, []);
 
   const toggleFullscreen = async () => {
@@ -135,6 +176,11 @@ export function PDFViewer({ pdfUrl, title, onFinish }: PDFViewerProps) {
 
   return (
     <Card className={`p-6 bg-white dark:bg-slate-950 transition-all duration-300 ${isFullscreen ? 'fixed inset-0 z-50 rounded-none h-screen w-screen overflow-hidden flex flex-col' : ''}`} ref={containerRef}>
+      {isContextOpen && (
+        <div className="fixed top-4 right-4 z-[100] rounded-md bg-amber-100 text-amber-900 px-4 py-2 shadow">
+          Opción deshabilitada en el visor seguro.
+        </div>
+      )}
       {title && !isFullscreen && (
         <h3 className="text-lg font-semibold text-foreground mb-4">{title}</h3>
       )}
@@ -220,7 +266,12 @@ export function PDFViewer({ pdfUrl, title, onFinish }: PDFViewerProps) {
             <div className="animate-pulse">Espere por favor</div>
           </div>
         ) : (
-          <canvas ref={canvasRef} className="block max-w-none max-h-none shadow-lg " />
+          <canvas
+            ref={canvasRef}
+            className="block max-w-none max-h-none shadow-lg select-none"
+            onContextMenu={(e) => e.preventDefault()}
+            draggable={false}
+          />
         )}
       </div>
     </Card>
