@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, Maximize, Minimize, Shield } from "lucide-re
 import { useAuth } from "@/context/AuthContext";
 // Set up worker with local asset (copied to public/pdf.worker.min.js)
 // Using standard JS worker instead of MJS to avoid MIME type issues
-pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
+pdfjsLib.GlobalWorkerOptions.workerSrc = "/TiltUp/pdf.worker.min.js";
 
 
 interface PDFViewerProps {

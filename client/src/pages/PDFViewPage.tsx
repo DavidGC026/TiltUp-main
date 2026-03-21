@@ -56,7 +56,7 @@ export default function PDFViewPage() {
 
   // Construir URL absoluta para react-pdf
   // Si pdfPath ya empieza con '/', no agregamos otro.
-  const pdfUrl = pdfPath?.startsWith('/') ? pdfPath : `/${pdfPath}`;
+  const pdfUrl = pdfPath?.startsWith('/TiltUp/') ? pdfPath : `/TiltUp/${pdfPath}`;
 
   console.log('PDFViewPage - pdfPath:', pdfPath);
   console.log('PDFViewPage - pdfUrl:', pdfUrl);
