@@ -1,0 +1,324 @@
+{
+    "Portada": {
+        "fila_inicio_datos": 13,
+        "columnas": {
+            "A": "Nombre ",
+            "C": "Afiliación ",
+            "D": "Cargo ",
+            "F": "Firma "
+        }
+    },
+    "C2": {
+        "fila_inicio_datos": "No detectada",
+        "columnas": {}
+    },
+    "C3": {
+        "fila_inicio_datos": 6,
+        "columnas": {
+            "A": "Criterio",
+            "B": "Descripción a verificar",
+            "C": "Cumple (Sí/No)",
+            "D": "Nivel de daño (Bajo/Medio/Alto)",
+            "E": "Acción requerida",
+            "F": "Responsable",
+            "G": "Fecha compromiso",
+            "H": "Observaciones"
+        }
+    },
+    "C4": {
+        "fila_inicio_datos": 6,
+        "columnas": {
+            "A": "Criterio",
+            "B": "Verificación en campo",
+            "C": "Cumple (Sí/No)",
+            "D": "Dato confirmado (valor real)",
+            "E": "Acción requerida",
+            "F": "Observaciones"
+        }
+    },
+    "C5": {
+        "fila_inicio_datos": 6,
+        "columnas": {
+            "A": "Panel No.",
+            "B": "Peso del Panel (ton)",
+            "C": "Resistencia requerida (kg/cm²)",
+            "D": "Resistencia verificada (kg/cm²)",
+            "E": "Grúa",
+            "F": "Operador",
+            "G": "Inserto limpio",
+            "H": "Deformaciones",
+            "I": "Fisuras en concreto",
+            "J": "Capacidad inserto (ton)",
+            "K": "Capacidad conexión (ton)",
+            "L": "Seguro activado (si aplica)",
+            "M": "Perno insertado (si aplica)",
+            "N": "Rosca completa (si aplica)",
+            "O": "Alineación correcta",
+            "P": "Ángulo correcto"
+        }
+    },
+    "C6": {
+        "fila_inicio_datos": 6,
+        "columnas": {
+            "A": "Concepto",
+            "B": "Valor de referencia",
+            "C": "Medición en campo",
+            "D": "Cumple (Si/No)",
+            "E": "Observaciones"
+        }
+    },
+    "C7": {
+        "fila_inicio_datos": 6,
+        "columnas": {
+            "A": "N° de elemento ",
+            "B": "Profundidad de cimentación",
+            "C": "Recubrimiento de acero en suelo",
+            "D": "Recubrimiento de acero en cimbra metálica",
+            "E": "Alineación de insertos/anclajes",
+            "F": "Nivelación de placas de anclaje",
+            "G": "Torque de pernos (ej. M24)",
+            "H": "Observaciones"
+        }
+    },
+    "C8": {
+        "fila_inicio_datos": 6,
+        "columnas": {
+            "A": "Elemento",
+            "B": "Capacidad de soporte de accesos",
+            "C": "Pendiente máxima de accesos",
+            "D": "Ancho libre de acceso",
+            "E": "Radio de giro mínimo",
+            "F": "Nivelación de placas de anclaje",
+            "G": "Plataforma para grúa",
+            "H": "Observaciones"
+        }
+    },
+    "C9": {
+        "fila_inicio_datos": 6,
+        "columnas": {
+            "A": "N° de elemento ",
+            "B": "Ubicación",
+            "C": "Planicidad",
+            "D": "Juntas sin fugas",
+            "E": "Aplicación de liberador ",
+            "F": "Dimensiones ",
+            "G": "Anclaje del molde estable",
+            "H": "Cumple (Si /No)",
+            "I": "Observaciones"
+        }
+    },
+    "C10": {
+        "fila_inicio_datos": 6,
+        "columnas": {
+            "A": "N° de elemento ",
+            "B": "Ubicación",
+            "C": "Recubrimiento caras expuestas ≥20 mm",
+            "D": "Recubrimiento bordes inferiores ≥25 mm",
+            "E": "Traslape ≥40 diámetros",
+            "F": "Separación ±10 mm",
+            "G": "Espaciadores ≤1 m",
+            "H": "Limpieza de acero",
+            "I": "Cumple (Si /No)",
+            "J": "Observaciones"
+        }
+    },
+    "C11": {
+        "fila_inicio_datos": 6,
+        "columnas": {
+            "A": "N° de elemento ",
+            "B": "Ubicación",
+            "C": "Posición insertos ±6 mm H / ±3 mm V",
+            "D": "Alineación 90° ±2°",
+            "E": "Anclajes izaje asegurados",
+            "F": "Separación bordes ≥75 mm",
+            "G": "Limpieza insertos",
+            "H": "Observaciones"
+        }
+    },
+    "C12": {
+        "fila_inicio_datos": 6,
+        "columnas": {
+            "A": "N° de elemento ",
+            "B": "Ubicación",
+            "C": "Revenimiento ",
+            "D": "Resistencia f’c ",
+            "E": "Tiempo descarga <90 min",
+            "F": "Altura colocación ≤1.5 m",
+            "G": "Tiempo de vibrado ",
+            "H": "Acabado superficial",
+            "I": "Observaciones"
+        }
+    },
+    "C13": {
+        "fila_inicio_datos": 6,
+        "columnas": {
+            "A": "N° de elemento ",
+            "B": "Ubicación",
+            "C": "Inicio curado ",
+            "D": "Método de curado ",
+            "E": "Tiempo curado ",
+            "F": "Temperatura 10–32°C",
+            "G": "f'c en desmolde ",
+            "H": "Observaciones"
+        }
+    },
+    "C14": {
+        "fila_inicio_datos": 6,
+        "columnas": {
+            "A": "N° de elemento ",
+            "B": "Ubicación",
+            "C": "Capacidad grúa ",
+            "D": "Altura y alcance correcta",
+            "E": "Cables, ganchos y poleas sin desgaste",
+            "F": "Certificación y mantenimiento vigente",
+            "G": "Nivelación de grúa estable",
+            "H": "Observaciones"
+        }
+    },
+    "C15": {
+        "fila_inicio_datos": 6,
+        "columnas": {
+            "A": "N° de elemento ",
+            "B": "Ubicación",
+            "C": "Zona de seguridad delimitada",
+            "D": "Señalización y comunicación",
+            "E": "EPP obligatorio",
+            "F": "Plan de emergencia",
+            "G": "Condición de viento",
+            "H": "Observaciones"
+        }
+    },
+    "C16": {
+        "fila_inicio_datos": 6,
+        "columnas": {
+            "A": "N° de elemento ",
+            "B": "Ubicación",
+            "C": "Desviación horizontal ±5 mm",
+            "D": "Desviación vertical ±3 mm",
+            "E": "Nivelación respecto fundación ±2 mm",
+            "F": "Instrumentos usados",
+            "G": "Observaciones"
+        }
+    },
+    "C17": {
+        "fila_inicio_datos": 6,
+        "columnas": {
+            "A": "N° de elemento ",
+            "B": "Ubicación",
+            "C": "Torque pernos de anclaje",
+            "D": "Separación anclajes ±3 mm",
+            "E": "Conexión entre paneles alineación ±3 mm",
+            "F": "Recubrimiento acero ",
+            "G": "Verificación visual completa",
+            "H": "Observaciones"
+        }
+    },
+    "C18": {
+        "fila_inicio_datos": 6,
+        "columnas": {
+            "A": "N° de elemento ",
+            "B": "Ubicación",
+            "C": "Número de apuntalamientos según diseño",
+            "D": "Altura máxima desplazamiento ±5 mm",
+            "E": "Suelo compactado ≥95%",
+            "F": "Capacidad apuntalamiento ≥ carga lateral",
+            "G": "Inspección cuñas y soportes",
+            "H": "Observaciones"
+        }
+    },
+    "C19": {
+        "fila_inicio_datos": 6,
+        "columnas": {
+            "A": "N° de elemento ",
+            "B": "Ubicación",
+            "C": "Alineación horizontal ±3 mm",
+            "D": "Alineación vertical ±2 mm",
+            "E": "Recubrimiento acero ",
+            "F": "Soldaduras/conectores completos",
+            "G": "Separación conectores según plano ±5 mm",
+            "H": "Observaciones"
+        }
+    },
+    "C20": {
+        "fila_inicio_datos": 6,
+        "columnas": {
+            "A": "N° de elemento ",
+            "B": "Ubicación",
+            "C": "Revisión de planos instalaciones",
+            "D": "Penetraciones alineadas ±5 mm",
+            "E": "Protecciones temporales aplicadas",
+            "F": "Secuencia de instalación coordinada",
+            "G": "Registro de coordinación firmado",
+            "H": "Observaciones"
+        }
+    },
+    "C21": {
+        "fila_inicio_datos": 6,
+        "columnas": {
+            "A": "N° de elemento ",
+            "B": "Ubicación",
+            "C": "Torque de pernos según diseño",
+            "D": "Alineación ±3 mm",
+            "E": "Recubrimiento acero",
+            "F": "Inspección visual completa",
+            "G": "Certificación de material revisada",
+            "H": "Observaciones"
+        }
+    },
+    "C22": {
+        "fila_inicio_datos": "No detectada",
+        "columnas": {}
+    },
+    "C23": {
+        "fila_inicio_datos": 6,
+        "columnas": {
+            "A": "N° de elemento ",
+            "B": "Ubicación",
+            "C": "Planicidad ±3 mm /3 m",
+            "D": "Grietas superficiales ≤0.3 mm",
+            "E": "Manchas/eflorescencias corregidas",
+            "F": "Bordes/esquinas ±5 mm",
+            "G": "Reparaciones correctas",
+            "H": "Observaciones"
+        }
+    },
+    "C24": {
+        "fila_inicio_datos": 6,
+        "columnas": {
+            "A": "N° de elemento ",
+            "B": "Ubicación",
+            "C": "Espesor de recubrimiento según especificación",
+            "D": "Cobertura uniforme",
+            "E": "Adherencia verificada",
+            "F": "Protecciones zonas críticas",
+            "G": "Tiempo de secado/curado cumplido",
+            "H": "Observaciones"
+        }
+    },
+    "C25": {
+        "fila_inicio_datos": 6,
+        "columnas": {
+            "A": "N° de elemento ",
+            "B": "Ubicación",
+            "C": "Eléctrico funcional",
+            "D": "Hidráulico funcional",
+            "E": "Accionamientos mecánicos",
+            "F": "Documentación disponible",
+            "G": "Registro de pruebas firmado",
+            "H": "Observaciones"
+        }
+    },
+    "C26": {
+        "fila_inicio_datos": "No detectada",
+        "columnas": {}
+    },
+    "C27": {
+        "fila_inicio_datos": 6,
+        "columnas": {
+            "A": "Nombre ",
+            "D": "Actividad o área de trabajo",
+            "F": "Uso de equipo adecuado (Si / No)",
+            "G": "Observaciones"
+        }
+    }
+}

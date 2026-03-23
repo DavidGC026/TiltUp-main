@@ -3,6 +3,8 @@ import { ModuleCard } from "@/components/ModuleCard";
 import { Header } from "@/components/Header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ProgressBar } from "@/components/ProgressBar";
 import { Link } from "wouter";
 import { BookOpen } from "lucide-react";
 import type { Module } from "@shared/schema";
@@ -11,6 +13,44 @@ export default function Home() {
   const { data: modules, isLoading } = useQuery<Module[]>({
     queryKey: ["/api/modules"],
   });
+
+  const libraryCard = (
+    <div
+      key="library"
+      className="bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-white/20 h-full md:col-start-1 md:row-start-2 lg:col-start-1 lg:row-start-2"
+    >
+      <Link href="/biblioteca">
+        <Card className="overflow-hidden transition-all duration-300 h-full hover-elevate active-elevate-2 cursor-pointer hover:shadow-lg" data-testid="card-library">
+          <div className="flex flex-col h-full">
+            <div className="relative w-full shrink-0 aspect-video overflow-hidden bg-muted">
+              <img
+                src="/IM-Cover-tiltup-web.jpg"
+                alt="Biblioteca técnica"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/25 to-transparent" />
+
+              <div className="absolute top-4 left-4">
+                <Badge variant="secondary" className="bg-primary text-primary-foreground font-bold px-3 py-1.5 text-sm">
+                  MÓDULO BIBLIOTECA
+                </Badge>
+              </div>
+            </div>
+
+            <div className="p-6 flex flex-col justify-between flex-grow">
+              <div>
+                <h3 className="text-2xl font-bold text-foreground mb-0">Biblioteca técnica</h3>
+              </div>
+
+              <div className="mt-auto pt-4 border-t border-border/50">
+                <ProgressBar progress={100} className="h-3" />
+              </div>
+            </div>
+          </div>
+        </Card>
+      </Link>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-transparent">
@@ -48,24 +88,19 @@ export default function Home() {
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
               data-testid="grid-modules"
             >
-              {modules?.map((module) => (
-                <div key={module.id} className="bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-white/20 h-full">
-                  <ModuleCard module={module} />
-                </div>
-              ))}
+              {(modules || []).flatMap((module, index) => {
+                const items = [
+                  <div key={module.id} className="bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-white/20 h-full">
+                    <ModuleCard module={module} />
+                  </div>,
+                ];
 
-              {/* Módulo extra para la Biblioteca */}
-              <div className="md:col-span-2 lg:col-span-2 md:col-start-2 lg:col-start-2 mt-4">
-                <Link href="/biblioteca">
-                  <div className="bg-gradient-to-r from-amber-50 to-orange-50 backdrop-blur-sm rounded-lg shadow-lg border-2 border-amber-200/50 h-full min-h-[220px] flex flex-col items-center justify-center p-6 hover:scale-[1.02] hover:shadow-xl transition-all duration-300 group cursor-pointer text-center gap-4 relative overflow-hidden">
-                    {/* Decoración estilo libro */}
-                    <div className="absolute left-0 top-0 bottom-0 w-3 border-r-2 border-black/5 bg-amber-600/20 shadow-inner"></div>
-                    
-                    <BookOpen className="w-20 h-20 text-amber-700 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300" strokeWidth={1.5} />
-                    <h3 className="text-3xl font-bold text-amber-900 drop-shadow-sm font-serif">Ver Biblioteca</h3>
-                  </div>
-                </Link>
-              </div>
+                if (index === 0) {
+                  items.push(libraryCard);
+                }
+
+                return items;
+              })}
             </div>
           )}
 

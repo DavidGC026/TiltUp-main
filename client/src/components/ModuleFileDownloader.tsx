@@ -220,6 +220,64 @@ export function ModuleFileDownloader({ moduleId }: ModuleFileDownloaderProps) {
     };
 
     const isAdmin = user?.role === 'admin';
+    const isModulo4 = moduleId === 'modulo-4';
+
+    const bitacoraActionCard = isModulo4 ? (
+        <Card key="bitacora-action" className="group relative overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1 flex flex-col">
+            <div className="p-6 flex-1 flex flex-col">
+                <div className="flex items-start justify-between mb-4">
+                    <div className="p-3 rounded-xl bg-red-50 text-red-600 dark:bg-red-950/30">
+                        <FileText className="h-8 w-8" />
+                    </div>
+                </div>
+
+                <div className="space-y-2 mb-4 flex-1">
+                    <h4 className="font-semibold text-lg leading-tight" title="Bitácora de Campo (Formato)">
+                        Bitácora de Campo (Formato)
+                    </h4>
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                        Llena el formato oficial y genera la Bitácora en XLSX y PDF.
+                    </p>
+                </div>
+
+                <div className="space-y-2 mt-auto">
+                    <Button
+                        variant="secondary"
+                        size="lg"
+                        className="w-full relative z-20 pointer-events-auto gap-2"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setShowBitacoraForm(true);
+                        }}
+                        data-testid="button-open-bitacora"
+                    >
+                        <Edit className="h-4 w-4" />
+                        Llenar Bitácora
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="lg"
+                        className="w-full relative z-20 pointer-events-auto gap-2"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setShowBitacoraForm(true);
+                        }}
+                        data-testid="button-export-bitacora-pdf"
+                    >
+                        <FileText className="h-4 w-4" />
+                        Exportar PDF
+                    </Button>
+                </div>
+
+                <div className="flex items-center justify-between text-xs text-muted-foreground pt-4 border-t border-border/50 mt-4">
+                    <span>XLSX + PDF</span>
+                    <span>Formato oficial</span>
+                </div>
+            </div>
+        </Card>
+    ) : null;
 
     return (
         <div className="space-y-6">
@@ -284,104 +342,106 @@ export function ModuleFileDownloader({ moduleId }: ModuleFileDownloaderProps) {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {files?.map((file) => (
-                    <Card key={file.id} className="group relative overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1 flex flex-col">
-                        {file.preview_image_path && (
-                            <div className="h-40 w-full overflow-hidden relative">
-                                <img
-                                    src={file.preview_image_path}
-                                    alt={file.title}
-                                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                                    onError={(e) => e.currentTarget.style.display = 'none'}
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
-                                {(isAdmin || file.is_owner) && (
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="absolute top-2 right-2 h-8 w-8 text-white hover:text-white hover:bg-destructive/80 z-20 pointer-events-auto"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            if (confirm('¿Estás seguro de eliminar este archivo?')) {
-                                                deleteMutation.mutate(file.id);
-                                            }
-                                        }}
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                )}
-                            </div>
-                        )}
-
-                        <div className={`p-6 flex-1 flex flex-col ${file.preview_image_path ? 'pt-4' : ''} relative z-20 pointer-events-none`}>
-                            <div className="flex items-start justify-between mb-4">
-                                <div className={`p-3 rounded-xl ${file.file_type === 'pdf' ? 'bg-red-50 text-red-600 dark:bg-red-950/30' : 'bg-green-50 text-green-600 dark:bg-green-950/30'}`}>
-                                    {file.file_type === 'pdf' ? (
-                                        <FileText className="h-8 w-8" />
-                                    ) : (
-                                        <FileSpreadsheet className="h-8 w-8" />
+                {(bitacoraActionCard ? [bitacoraActionCard] : []).concat(
+                    (files ?? []).map((file) => (
+                        <Card key={file.id} className="group relative overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1 flex flex-col">
+                            {file.preview_image_path && (
+                                <div className="h-40 w-full overflow-hidden relative">
+                                    <img
+                                        src={file.preview_image_path}
+                                        alt={file.title}
+                                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                        onError={(e) => e.currentTarget.style.display = 'none'}
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
+                                    {(isAdmin || file.is_owner) && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="absolute top-2 right-2 h-8 w-8 text-white hover:text-white hover:bg-destructive/80 z-20 pointer-events-auto"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                if (confirm('¿Estás seguro de eliminar este archivo?')) {
+                                                    deleteMutation.mutate(file.id);
+                                                }
+                                            }}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
                                     )}
                                 </div>
-                                {(isAdmin || file.is_owner) && !file.preview_image_path && (
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 -mt-2 -mr-2 relative z-20 pointer-events-auto"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            if (confirm('¿Estás seguro de eliminar este archivo?')) {
-                                                deleteMutation.mutate(file.id);
-                                            }
-                                        }}
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                )}
+                            )}
+
+                            <div className={`p-6 flex-1 flex flex-col ${file.preview_image_path ? 'pt-4' : ''} relative z-20 pointer-events-none`}>
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className={`p-3 rounded-xl ${file.file_type === 'pdf' ? 'bg-red-50 text-red-600 dark:bg-red-950/30' : 'bg-green-50 text-green-600 dark:bg-green-950/30'}`}>
+                                        {file.file_type === 'pdf' ? (
+                                            <FileText className="h-8 w-8" />
+                                        ) : (
+                                            <FileSpreadsheet className="h-8 w-8" />
+                                        )}
+                                    </div>
+                                    {(isAdmin || file.is_owner) && !file.preview_image_path && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 -mt-2 -mr-2 relative z-20 pointer-events-auto"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                if (confirm('¿Estás seguro de eliminar este archivo?')) {
+                                                    deleteMutation.mutate(file.id);
+                                                }
+                                            }}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2 mb-4 flex-1">
+                                    <h4 className="font-semibold text-lg leading-tight line-clamp-2" title={file.title}>
+                                        {file.title}
+                                        {file.is_owner && <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">Mío</span>}
+                                    </h4>
+                                    {file.description && (
+                                        <p className="text-sm text-muted-foreground line-clamp-2" title={file.description}>
+                                            {file.description}
+                                        </p>
+                                    )}
+                                    {(file.file_type === 'excel' || file.file_type === 'pdf') && (
+                                        <Button
+                                            variant="secondary"
+                                            size="sm"
+                                            className="w-full mt-2 relative z-20 pointer-events-auto"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                setEditingFile(file);
+                                            }}
+                                        >
+                                            <span className="flex items-center">
+                                                {file.file_type === 'pdf' ? (
+                                                    <FileText className="h-4 w-4 mr-2" />
+                                                ) : (
+                                                    <Edit className="h-4 w-4 mr-2" />
+                                                )}
+                                                {file.file_type === 'excel' ? 'Ver / Editar' : 'Ver Archivo'}
+                                            </span>
+                                        </Button>
+                                    )}
+                                </div>
+
+                                <div className="flex items-center justify-between text-xs text-muted-foreground pt-4 border-t border-border/50 mt-auto">
+                                    <span>{(file.file_size / 1024 / 1024).toFixed(2)} MB</span>
+                                    <span>{new Date(file.created_at).toLocaleDateString()}</span>
+                                </div>
                             </div>
 
-                            <div className="space-y-2 mb-4 flex-1">
-                                <h4 className="font-semibold text-lg leading-tight line-clamp-2" title={file.title}>
-                                    {file.title}
-                                    {file.is_owner && <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">Mío</span>}
-                                </h4>
-                                {file.description && (
-                                    <p className="text-sm text-muted-foreground line-clamp-2" title={file.description}>
-                                        {file.description}
-                                    </p>
-                                )}
-                                {(file.file_type === 'excel' || file.file_type === 'pdf') && (
-                                    <Button
-                                        variant="secondary"
-                                        size="sm"
-                                        className="w-full mt-2 relative z-20 pointer-events-auto"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            setEditingFile(file);
-                                        }}
-                                    >
-                                        <span className="flex items-center">
-                                            {file.file_type === 'pdf' ? (
-                                                <FileText className="h-4 w-4 mr-2" />
-                                            ) : (
-                                                <Edit className="h-4 w-4 mr-2" />
-                                            )}
-                                            {file.file_type === 'excel' ? 'Ver / Editar' : 'Ver Archivo'}
-                                        </span>
-                                    </Button>
-                                )}
-                            </div>
-
-                            <div className="flex items-center justify-between text-xs text-muted-foreground pt-4 border-t border-border/50 mt-auto">
-                                <span>{(file.file_size / 1024 / 1024).toFixed(2)} MB</span>
-                                <span>{new Date(file.created_at).toLocaleDateString()}</span>
-                            </div>
-                        </div>
-
-                    </Card>
-                ))}
+                        </Card>
+                    ))
+                )}
             </div>
 
 

@@ -107,9 +107,38 @@ export interface BitacoraPayload {
     grua: Omit<GruaRow, "id">[];
     insertos: Omit<InsertoRow, "id">[];
 
+    // Extras por hoja (C6–C27) como arrays de filas y columnas en orden
+    extras: Record<string, string[][]>;
+
     // Fecha general para hojas C2-C5
     fecha_general: string;
 }
+
+// ─── Mapeo de columnas por hoja extra (C6–C27) ─────────────────────────────
+const EXTRA_SHEETS: { code: string; title: string; columns: string[] }[] = [
+    { code: "C6", title: "C6 — Nivelación y compactación del terreno", columns: ["Concepto", "Valor de referencia", "Medición en campo", "Cumple (Si/No)", "Observaciones"] },
+    { code: "C7", title: "C7 — Excavación para cimentación", columns: ["N° de elemento", "Profundidad de cimentación", "Recubrimiento de acero en suelo", "Recubrimiento de acero en cimbra metálica", "Alineación de insertos/anclajes", "Nivelación de placas de anclaje", "Torque de pernos (ej. M24)", "Observaciones"] },
+    { code: "C8", title: "C8", columns: ["Elemento", "Capacidad de soporte de accesos", "Pendiente máxima de accesos", "Ancho libre de acceso", "Radio de giro mínimo", "Nivelación de placas de anclaje", "Plataforma para grúa", "Observaciones"] },
+    { code: "C9", title: "C9", columns: ["N° de elemento", "Ubicación", "Planicidad", "Juntas sin fugas", "Aplicación de liberador", "Dimensiones", "Anclaje del molde estable", "Cumple (Si /No)", "Observaciones"] },
+    { code: "C10", title: "C10", columns: ["N° de elemento", "Ubicación", "Recubrimiento caras expuestas ≥20 mm", "Recubrimiento bordes inferiores ≥25 mm", "Traslape ≥40 diámetros", "Separación ±10 mm", "Espaciadores ≤1 m", "Limpieza de acero", "Cumple (Si /No)", "Observaciones"] },
+    { code: "C11", title: "C11", columns: ["N° de elemento", "Ubicación", "Posición insertos ±6 mm H / ±3 mm V", "Alineación 90° ±2°", "Anclajes izaje asegurados", "Separación bordes ≥75 mm", "Limpieza insertos", "Observaciones"] },
+    { code: "C12", title: "C12", columns: ["N° de elemento", "Ubicación", "Revenimiento", "Resistencia f’c", "Tiempo descarga <90 min", "Altura colocación ≤1.5 m", "Tiempo de vibrado", "Acabado superficial", "Observaciones"] },
+    { code: "C13", title: "C13", columns: ["N° de elemento", "Ubicación", "Inicio curado", "Método de curado", "Tiempo curado", "Temperatura 10–32°C", "f'c en desmolde", "Observaciones"] },
+    { code: "C14", title: "C14", columns: ["N° de elemento", "Ubicación", "Capacidad grúa", "Altura y alcance correcta", "Cables, ganchos y poleas sin desgaste", "Certificación y mantenimiento vigente", "Nivelación de grúa estable", "Observaciones"] },
+    { code: "C15", title: "C15", columns: ["N° de elemento", "Ubicación", "Zona de seguridad delimitada", "Señalización y comunicación", "EPP obligatorio", "Plan de emergencia", "Condición de viento", "Observaciones"] },
+    { code: "C16", title: "C16", columns: ["N° de elemento", "Ubicación", "Desviación horizontal ±5 mm", "Desviación vertical ±3 mm", "Nivelación respecto fundación ±2 mm", "Instrumentos usados", "Observaciones"] },
+    { code: "C17", title: "C17", columns: ["N° de elemento", "Ubicación", "Torque pernos de anclaje", "Separación anclajes ±3 mm", "Conexión entre paneles alineación ±3 mm", "Recubrimiento acero", "Verificación visual completa", "Observaciones"] },
+    { code: "C18", title: "C18", columns: ["N° de elemento", "Ubicación", "Número de apuntalamientos según diseño", "Altura máxima desplazamiento ±5 mm", "Suelo compactado ≥95%", "Capacidad apuntalamiento ≥ carga lateral", "Inspección cuñas y soportes", "Observaciones"] },
+    { code: "C19", title: "C19", columns: ["N° de elemento", "Ubicación", "Alineación horizontal ±3 mm", "Alineación vertical ±2 mm", "Recubrimiento acero", "Soldaduras/conectores completos", "Separación conectores según plano ±5 mm", "Observaciones"] },
+    { code: "C20", title: "C20", columns: ["N° de elemento", "Ubicación", "Revisión de planos instalaciones", "Penetraciones alineadas ±5 mm", "Protecciones temporales aplicadas", "Secuencia de instalación coordinada", "Registro de coordinación firmado", "Observaciones"] },
+    { code: "C21", title: "C21", columns: ["N° de elemento", "Ubicación", "Torque de pernos según diseño", "Alineación ±3 mm", "Recubrimiento acero", "Inspección visual completa", "Certificación de material revisada", "Observaciones"] },
+    { code: "C23", title: "C23", columns: ["N° de elemento", "Ubicación", "Planicidad ±3 mm /3 m", "Grietas superficiales ≤0.3 mm", "Manchas/eflorescencias corregidas", "Bordes/esquinas ±5 mm", "Reparaciones correctas", "Observaciones"] },
+    { code: "C24", title: "C24", columns: ["N° de elemento", "Ubicación", "Espesor de recubrimiento según especificación", "Cobertura uniforme", "Adherencia verificada", "Protecciones zonas críticas", "Tiempo de secado/curado cumplido", "Observaciones"] },
+    { code: "C25", title: "C25", columns: ["N° de elemento", "Ubicación", "Eléctrico funcional", "Hidráulico funcional", "Accionamientos mecánicos", "Documentación disponible", "Registro de pruebas firmado", "Observaciones"] },
+    { code: "C27", title: "C27", columns: ["Nombre", "Actividad o área de trabajo", "Uso de equipo adecuado (Si / No)", "Observaciones"] },
+];
+
+type ExtraRow = { id: string; values: string[] };
 
 interface BitacoraFormProps {
     onClose: () => void;
@@ -266,7 +295,42 @@ export function BitacoraForm({ onClose, apiBase }: BitacoraFormProps) {
     // ── C5 Insertos ──
     const [insertos, setInsertos] = useState<InsertoRow[]>([makeInsertoRow()]);
 
+    // ── Extras C6–C27 ──
+    const [extras, setExtras] = useState<Record<string, ExtraRow[]>>(() => {
+        const initial: Record<string, ExtraRow[]> = {};
+        EXTRA_SHEETS.forEach((sheet) => {
+            const cols = sheet.columns.length;
+            initial[sheet.code] = [{ id: uid(), values: Array(cols).fill("") }];
+        });
+        return initial;
+    });
+
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Helpers extras
+    const updateExtraCell = (sheetCode: string, rowId: string, colIndex: number, value: string) => {
+        setExtras((prev) => {
+            const rows = prev[sheetCode] || [];
+            const nextRows = rows.map((r) => r.id === rowId ? { ...r, values: r.values.map((v, i) => i === colIndex ? value : v) } : r);
+            return { ...prev, [sheetCode]: nextRows };
+        });
+    };
+
+    const addExtraRow = (sheetCode: string) => {
+        setExtras((prev) => {
+            const cols = EXTRA_SHEETS.find((s) => s.code === sheetCode)?.columns.length || 0;
+            const nextRow: ExtraRow = { id: uid(), values: Array(cols).fill("") };
+            return { ...prev, [sheetCode]: [...(prev[sheetCode] || []), nextRow] };
+        });
+    };
+
+    const removeExtraRow = (sheetCode: string, rowId: string) => {
+        setExtras((prev) => {
+            const rows = prev[sheetCode] || [];
+            if (rows.length <= 1) return prev; // deja al menos una fila
+            return { ...prev, [sheetCode]: rows.filter((r) => r.id !== rowId) };
+        });
+    };
 
     // ── Generic updater ──
     function updateRow<T extends { id: string }>(
@@ -306,6 +370,12 @@ export function BitacoraForm({ onClose, apiBase }: BitacoraFormProps) {
             justificacion_moldaje: justificacionMoldaje,
             grua: stripId(grua),
             insertos: stripId(insertos),
+            extras: Object.fromEntries(
+                Object.entries(extras).map(([code, rows]) => [
+                    code,
+                    rows.map((r) => r.values)
+                ])
+            ),
         };
 
         setIsSubmitting(true);

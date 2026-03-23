@@ -70,9 +70,6 @@ export function ModuleCard({ module, isLocked = false }: ModuleCardProps) {
             >
               {module.title}
             </h3>
-            <p className="text-base text-muted-foreground mb-6 line-clamp-3 md:line-clamp-none">
-              {module.description}
-            </p>
           </div>
 
           <div className="mt-auto pt-4 border-t border-border/50">

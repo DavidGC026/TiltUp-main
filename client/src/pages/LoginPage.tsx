@@ -48,7 +48,7 @@ export default function LoginPage() {
                 <div
                     className="absolute inset-0 bg-cover bg-center transition-transform duration-10000 hover:scale-105"
                     style={{
-                        backgroundImage: "url('/TiltUp/login-bg.png')",
+                        backgroundImage: "url('/login-bg.png')",
                         opacity: 0.6
                     }}
                 />
@@ -70,11 +70,6 @@ export default function LoginPage() {
                                 <p className="text-sm text-gray-300">Plataforma Educativa</p>
                             </div>
                         </div>
-                        <img
-                            src="https://grabador.imcyc.com/ImagenesImcycweb/TiltUp/BuiltBox-Logo-06.png"
-                            alt="BuiltBox Logo"
-                            className="h-16 w-auto object-contain bg-white/10 p-2 rounded-lg backdrop-blur-sm"
-                        />
                     </div>
 
                     <div className="space-y-6 max-w-lg mb-12">

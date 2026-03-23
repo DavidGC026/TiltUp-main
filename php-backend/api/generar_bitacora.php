@@ -55,9 +55,8 @@ if (!$data || empty($data['proyecto']) || empty($data['folio'])) {
 }
 
 // ─── Plantilla maestra ──────────────────────────────────────────────────────
-// Usa la plantilla subida. Ajusta la ruta si cambia.
-
-$templatePath = __DIR__ . '/../templates/bitacora_maestra.xlsx';
+// Nuevo formato con ~27–30 hojas ubicado en /shared
+$templatePath = __DIR__ . '/../../shared/Bitacora de campo tilt up_13022026.xlsx';
 
 // Fallback: buscar la más reciente en uploads/formatos
 if (!file_exists($templatePath)) {
@@ -68,6 +67,14 @@ if (!file_exists($templatePath)) {
         });
         $templatePath = $fallback[0];
     }
+}
+
+// ─── Mapeo por hoja (fila inicio + columnas) ───────────────────────────────
+$mappingPath = __DIR__ . '/../../shared/mapeo_bitacora.json';
+$sheetMappings = [];
+if (file_exists($mappingPath)) {
+    $json = file_get_contents($mappingPath);
+    $sheetMappings = json_decode($json, true) ?: [];
 }
 
 if (!file_exists($templatePath)) {
@@ -85,21 +92,60 @@ catch (\Exception $e) {
     exit;
 }
 
+// Helper: escribir Proyecto / Fecha (general) en B2/B3 si existen
+$writeProyectoFecha = function ($sheet) use ($data) {
+    if (!$sheet)
+        return;
+    try {
+        $sheet->setCellValue('B2', $data['proyecto'] ?? '');
+        $sheet->setCellValue('B3', $data['fecha_general'] ?? '');
+    }
+    catch (\Throwable $t) {
+    // ignorar si la hoja no tiene esas celdas
+    }
+};
+
+// Helper: llenar según mapeo JSON y un orden de propiedades
+function fillSheetByMapping($sheet, $mapping, $rowsData, $propertyOrder)
+{
+    if (!$sheet || !$mapping || !$rowsData || !$propertyOrder)
+        return;
+    $startRow = intval($mapping['fila_inicio_datos'] ?? 0);
+    if ($startRow <= 0)
+        return;
+    $columnsMap = $mapping['columnas'] ?? [];
+    if (!$columnsMap)
+        return;
+    $colLetters = array_keys($columnsMap);
+
+    try {
+        $rowIdx = $startRow;
+        foreach ($rowsData as $row) {
+            foreach ($colLetters as $idx => $colLetter) {
+                if (!isset($propertyOrder[$idx]))
+                    continue;
+                $prop = $propertyOrder[$idx];
+                $val = $row[$prop] ?? '';
+                $sheet->setCellValue($colLetter . $rowIdx, $val);
+            }
+            $rowIdx++;
+        }
+    }
+    catch (\Throwable $t) {
+    // silent per sheet
+    }
+}
+
+// Aplicar Proyecto/Fecha en todas las hojas (27–30)
+foreach ($spreadsheet->getAllSheets() as $sh) {
+    $writeProyectoFecha($sh);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // ███  HOJA "Portada"
 // ═══════════════════════════════════════════════════════════════════════════════
 //
-// Estructura detectada en la plantilla:
-//   G1  = "Logo" (imagen — no tocar)
-//   A2  = "BITÁCORA DE CAMPO TILT UP" (título — no tocar)
-//   A3  = "Empresa Contratista Principal:"  → valor en B3 (o celda contigua)
-//   A4  = "Proyecto: "  / F4 = "Folio: "   → valor en B4 / G4
-//   A5  = "Ubicación:"                      → valor en B5
-//   A7  = "Fecha de inicio programada :" / F7 = "Real:" → B7 / G7
-//   A8  = "Fecha de termino programada :" / F8 = "Real:" → B8 / G8
-//   A11 = "Responsables en obra:"
-//   A12 = "Nombre" / C12 = "Afiliación" / D12 = "Cargo" / F12 = "Firma"
-//   Filas 13+ = datos de responsables
+// Estructura: se mantiene respecto al formato previo.
 
 $portada = $spreadsheet->getSheetByName('Portada') ?? $spreadsheet->getActiveSheet();
 
@@ -126,46 +172,118 @@ foreach ($responsables as $i => $resp) {
 
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// ███  HOJA "C2" — Plan de Manejo de Residuos
+// ███  HOJAS "C2" … "C27" — Llenado usando mapeo JSON
 // ═══════════════════════════════════════════════════════════════════════════════
-//
-// Estructura:
-//   L1 = Logo
-//   A2 = "Proyecto:" → B2 valor
-//   A3 = "Fecha:"    → B3 valor
-//   A4 = "Plan de manejo de residuos" (título)
-//   Fila 5 = Encabezados: A=Etapa, B=Tipo Residuo, C=Clasificación, D=Volumen,
-//            E=Área Acopio, F=Contenedor, G=Frecuencia, H=Empresa Transp.,
-//            I=Sitio Disposición, J=Fecha Retiro, K=No. Manifiesto, L=Observaciones
-//   Filas 6–19 = 14 etapas constructivas pre-llenadas en columna A
-//   Columnas B–L = datos a rellenar
 
+$sheetNames = $spreadsheet->getSheetNames();
+
+// C2: plan de residuos (mapping no detectado; se mantiene el llenado previo clásico)
 $hojaC2 = $spreadsheet->getSheetByName('C2');
 if ($hojaC2) {
-    $hojaC2->setCellValue('B2', $data['proyecto'] ?? '');
-    $hojaC2->setCellValue('B3', $data['fecha_general'] ?? '');
-
-    $residuos = $data['residuos'] ?? [];
-    // Las etapas están en filas 6-19 (14 etapas). Inyectamos cols B–L.
-    $c2StartRow = 6;
-    foreach ($residuos as $i => $res) {
-        $row = $c2StartRow + $i;
+    $rows = $data['residuos'] ?? [];
+    $startRow = 6;
+    foreach ($rows as $i => $r) {
+        $row = $startRow + $i;
         if ($row > 19)
-            break; // No exceder las filas de la plantilla
-
-        // No sobrescribir columna A (etapa pre-llenada)
-        $hojaC2->setCellValue("B{$row}", $res['tipo_residuo'] ?? '');
-        $hojaC2->setCellValue("C{$row}", $res['clasificacion'] ?? '');
-        $hojaC2->setCellValue("D{$row}", $res['volumen_estimado'] ?? '');
-        $hojaC2->setCellValue("E{$row}", $res['area_acopio'] ?? '');
-        $hojaC2->setCellValue("F{$row}", $res['contenedor_metodo'] ?? '');
-        $hojaC2->setCellValue("G{$row}", $res['frecuencia_retiro'] ?? '');
-        $hojaC2->setCellValue("H{$row}", $res['empresa_transportista'] ?? '');
-        $hojaC2->setCellValue("I{$row}", $res['sitio_disposicion'] ?? '');
-        $hojaC2->setCellValue("J{$row}", $res['fecha_retiro'] ?? '');
-        $hojaC2->setCellValue("K{$row}", $res['no_manifiesto'] ?? '');
-        $hojaC2->setCellValue("L{$row}", $res['observaciones'] ?? '');
+            break;
+        $hojaC2->setCellValue("B{$row}", $r['tipo_residuo'] ?? '');
+        $hojaC2->setCellValue("C{$row}", $r['clasificacion'] ?? '');
+        $hojaC2->setCellValue("D{$row}", $r['volumen_estimado'] ?? '');
+        $hojaC2->setCellValue("E{$row}", $r['area_acopio'] ?? '');
+        $hojaC2->setCellValue("F{$row}", $r['contenedor_metodo'] ?? '');
+        $hojaC2->setCellValue("G{$row}", $r['frecuencia_retiro'] ?? '');
+        $hojaC2->setCellValue("H{$row}", $r['empresa_transportista'] ?? '');
+        $hojaC2->setCellValue("I{$row}", $r['sitio_disposicion'] ?? '');
+        $hojaC2->setCellValue("J{$row}", $r['fecha_retiro'] ?? '');
+        $hojaC2->setCellValue("K{$row}", $r['no_manifiesto'] ?? '');
+        $hojaC2->setCellValue("L{$row}", $r['observaciones'] ?? '');
     }
+}
+
+// C3
+if (isset($sheetMappings['C3'])) {
+    $mapping = $sheetMappings['C3'];
+    $rows = $data['moldaje'] ?? [];
+    $propertyOrder = ['criterio', 'descripcion', 'cumple', 'nivel_dano', 'accion_requerida', 'responsable', 'fecha_compromiso', 'observaciones'];
+    $hoja = $spreadsheet->getSheetByName('C3');
+    fillSheetByMapping($hoja, $mapping, $rows, $propertyOrder);
+    // Dictamen / justificación
+    if ($hoja) {
+        $dictamen = $data['dictamen_moldaje'] ?? '';
+        $dictamenTexto = '';
+        switch ($dictamen) {
+            case 'apto':
+                $dictamenTexto = '☑ Apto para uso inmediato           ☐ Uso condicionado (requiere reparación)             ☐ Retiro definitivo';
+                break;
+            case 'condicionado':
+                $dictamenTexto = '☐ Apto para uso inmediato           ☑ Uso condicionado (requiere reparación)             ☐ Retiro definitivo';
+                break;
+            case 'retiro':
+                $dictamenTexto = '☐ Apto para uso inmediato           ☐ Uso condicionado (requiere reparación)             ☑ Retiro definitivo';
+                break;
+            default:
+                $dictamenTexto = '☐ Apto para uso inmediato           ☐ Uso condicionado (requiere reparación)             ☐ Retiro definitivo';
+                break;
+        }
+        try {
+            $hoja->setCellValue('A19', '   ' . $dictamenTexto);
+            $hoja->setCellValue('A22', $data['justificacion_moldaje'] ?? '');
+        }
+        catch (\Throwable $t) {
+        }
+    }
+}
+
+// C4
+if (isset($sheetMappings['C4'])) {
+    $mapping = $sheetMappings['C4'];
+    $rows = $data['grua'] ?? [];
+    $propertyOrder = ['criterio', 'verificacion', 'cumple', 'dato_confirmado', 'accion_requerida', 'observaciones'];
+    $hoja = $spreadsheet->getSheetByName('C4');
+    fillSheetByMapping($hoja, $mapping, $rows, $propertyOrder);
+}
+
+// C5
+if (isset($sheetMappings['C5'])) {
+    $mapping = $sheetMappings['C5'];
+    $rows = $data['insertos'] ?? [];
+    $propertyOrder = ['panel_no', 'peso_panel', 'resistencia_requerida', 'resistencia_verificada', 'grua', 'operador', 'inserto_limpio', 'deformaciones', 'fisuras', 'capacidad_inserto', 'capacidad_conexion', 'seguro_activado', 'perno_insertado', 'rosca_completa', 'alineacion_correcta', 'angulo_correcto'];
+    $hoja = $spreadsheet->getSheetByName('C5');
+    fillSheetByMapping($hoja, $mapping, $rows, $propertyOrder);
+}
+
+// C6..C27: si existe mapeo y tenemos datos en $data['insertos'] (como fuente genérica), llenar por posición respetando columnas definidas
+for ($i = 6; $i <= 27; $i++) {
+    $name = 'C' . $i;
+    if (!isset($sheetMappings[$name]))
+        continue;
+    $mapping = $sheetMappings[$name];
+    $hoja = $spreadsheet->getSheetByName($name);
+    if (!$hoja)
+        continue;
+
+    // Fuente genérica: insertos (por ahora), se mapea por posición de columnas
+    $rows = $data['insertos'] ?? [];
+    if (!$rows)
+        continue;
+
+    // Construir propertyOrder con tantos elementos como columnas, usando índices numéricos de las filas de insertos
+    $columns = array_keys($mapping['columnas'] ?? []);
+    $propertyOrder = [];
+    foreach ($columns as $idx => $colLetter) {
+        // si el insert tiene clave numérica, usamos la posición
+        $propertyOrder[$idx] = $idx; // index-based; we will pull by numeric index
+    }
+
+    // Adapt rows to numeric-index array
+    $normalizedRows = [];
+    foreach ($rows as $row) {
+        // ensure numeric ordering of values
+        $values = array_values($row);
+        $normalizedRows[] = $values;
+    }
+
+    fillSheetByMapping($hoja, $mapping, $normalizedRows, $propertyOrder);
 }
 
 
@@ -317,15 +435,16 @@ if ($hojaC5) {
 $folioSafe = preg_replace('/[^a-zA-Z0-9_-]/', '_', $data['folio'] ?? 'SD');
 $timestamp = date('Ymd_His');
 
-// Directorio de salida: /uploads/bitacoras
-$baseUploads = realpath(__DIR__ . '/../../uploads');
+// Directorio de salida: /uploads/bitacoras (dentro de TiltUp)
+$baseUploads = realpath(__DIR__ . '/../uploads');
 if ($baseUploads === false) {
-    $baseUploads = __DIR__ . '/../../uploads';
+    $baseUploads = __DIR__ . '/../uploads';
 }
 $bitacoraDir = $baseUploads . '/bitacoras';
 if (!is_dir($bitacoraDir)) {
     mkdir($bitacoraDir, 0775, true);
 }
+@chmod($bitacoraDir, 0775);
 
 $xlsxPath = "$bitacoraDir/bitacora_{$folioSafe}_{$timestamp}.xlsx";
 $pdfPath = "$bitacoraDir/bitacora_{$folioSafe}_{$timestamp}.pdf";

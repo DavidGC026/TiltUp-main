@@ -1,21 +1,37 @@
 import { useMemo, useState } from "react";
 import { Header } from "@/components/Header";
 import { PDFViewer } from "@/components/PDFViewer";
-import { BookOpen, FileText, Sparkles } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Sparkles } from "lucide-react";
+
+interface Book {
+  id: string;
+  title: string;
+  description: string;
+  fileName: string;
+  pdfFolder: string;
+  cover: string; // path relative to public (e.g., /IM-Cover-tiltup-web.jpg)
+}
 
 export default function LibraryPage() {
-  const books = [
+  const books: Book[] = [
     {
+      id: "tiltup-spread",
       title: "Tilt-Up Spread",
-      description: "Guía completa y detallada sobre las mejores prácticas, técnicas y normativas para la construcción eficiente mediante paneles de hormigón Tilt-Up.",
+      description:
+        "Guía completa y detallada sobre las mejores prácticas, técnicas y normativas para la construcción eficiente mediante paneles de hormigón Tilt-Up.",
       fileName: "Tilt Up-Spread-V1.pdf",
-      icon: <BookOpen className="w-20 h-20 text-amber-700 mb-6 group-hover:text-amber-600 transition-colors" strokeWidth={1.5} />,
-      color: "from-amber-50 to-orange-50",
-      borderColor: "border-amber-200/50",
-      accent: "bg-amber-600/20",
-      textColor: "text-amber-900",
-      btnColor: "bg-amber-600 hover:bg-amber-500",
-    }
+      pdfFolder: "biblioteca",
+      cover: "/IM-Cover-tiltup-web.jpg",
+    },
+    {
+      id: "bitacora-control",
+      title: "Bitácora de Control",
+      description: "Formato de bitácora para el control y seguimiento de obra, listo para utilizar en campo.",
+      fileName: "Bitacora.pdf",
+      pdfFolder: "bitacoras",
+      cover: "/IM-Cover-bitacora-web.jpg",
+    },
   ];
 
   const [selectedBook, setSelectedBook] = useState<(typeof books)[number] | null>(books[0]);
@@ -23,8 +39,8 @@ export default function LibraryPage() {
   const selectedPdfUrl = useMemo(() => {
     if (!selectedBook) return "";
     const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
-    const libraryPath = `${basePath}/uploads/biblioteca`;
-    return `${libraryPath}/${selectedBook.fileName}`;
+    const folderPath = `${basePath}/uploads/${selectedBook.pdfFolder}`;
+    return `${folderPath}/${selectedBook.fileName}`;
   }, [selectedBook]);
 
   return (
@@ -44,40 +60,35 @@ export default function LibraryPage() {
           </div>
 
           {/* Contenedor principal de los libros */}
-          <div className="flex flex-col md:flex-row justify-center items-stretch gap-10 w-full max-w-5xl">
-            {books.map((book, index) => (
-              <div
-                key={index}
-                className={`flex-1 flex flex-col bg-gradient-to-br ${book.color} backdrop-blur-sm rounded-xl border-2 ${book.borderColor} shadow-2xl overflow-hidden relative group hover:-translate-y-2 transition-transform duration-300`}
-              >
-                {/* Lomo del libro simulado */}
-                <div className={`absolute left-0 top-0 bottom-0 w-8 border-r-2 border-black/5 ${book.accent} shadow-inner z-10 flex flex-col justify-center items-center py-4`}>
-                  <div className="w-px h-full bg-black/5 rounded-full"></div>
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-5xl">
+            {books.map((book) => {
+              const isSelected = selectedBook?.id === book.id;
+              const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+              const coverSrc = `${basePath}${book.cover.startsWith("/") ? book.cover : `/${book.cover}`}`;
 
-                <div className="pl-14 pr-10 py-12 flex-1 flex flex-col items-center text-center relative z-0">
-                  <div className="transform group-hover:scale-110 transition-transform duration-500">
-                    {book.icon}
+              return (
+                <Card
+                  key={book.id}
+                  className={`overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${isSelected ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : ""
+                    }`}
+                  onClick={() => setSelectedBook(book)}
+                  data-testid={`library-card-${book.id}`}
+                >
+                  <div className="relative aspect-[3/4] w-full overflow-hidden">
+                    <img
+                      src={coverSrc}
+                      alt={book.title}
+                      className="h-full w-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/25 to-transparent" />
+                    <div className="absolute bottom-4 left-4 right-4 text-white drop-shadow">
+                      <p className="text-xs uppercase tracking-wide opacity-80">Libro</p>
+                      <h3 className="text-2xl font-bold leading-tight">{book.title}</h3>
+                    </div>
                   </div>
-
-                  <h3 className={`text-3xl font-bold ${book.textColor} font-serif mb-6 leading-tight`}>
-                    {book.title}
-                  </h3>
-
-                  <p className="text-gray-700 text-base leading-relaxed mb-10 flex-1">
-                    {book.description}
-                  </p>
-
-                  <button
-                    onClick={() => setSelectedBook(book)}
-                    className={`w-full py-4 px-6 rounded-lg font-bold text-white shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3 ${book.btnColor}`}
-                  >
-                    <Sparkles className="w-6 h-6" />
-                    Ver en visor seguro
-                  </button>
-                </div>
-              </div>
-            ))}
+                </Card>
+              );
+            })}
           </div>
 
           {/* Visor PDF sin descarga ni impresión */}
