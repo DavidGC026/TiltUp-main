@@ -39,7 +39,15 @@ export function PDFViewer({ pdfUrl, title, onFinish }: PDFViewerProps) {
     const loadPdf = async () => {
       try {
         console.log('Cargando PDF desde:', pdfUrl);
-        const pdf = await pdfjsLib.getDocument(pdfUrl).promise;
+        const pdf = await pdfjsLib.getDocument({
+          url: pdfUrl,
+          // Aquí le damos las rutas para que sepa dónde descargar el motor WebAssembly
+          wasmUrl: 'https://unpkg.com/pdfjs-dist@5.4.296/wasm/',
+          standardFontDataUrl: 'https://unpkg.com/pdfjs-dist@5.4.296/standard_fonts/',
+          // Los diccionarios cMap sirven para evitar problemas con fuentes raras en portadas
+          cMapUrl: 'https://unpkg.com/pdfjs-dist@5.4.296/cmaps/',
+          cMapPacked: true
+        }).promise;
         pdfDocRef.current = pdf;
         setNumPages(pdf.numPages);
         console.log('PDF cargado exitosamente. Páginas:', pdf.numPages);

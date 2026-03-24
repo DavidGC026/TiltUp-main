@@ -55,26 +55,54 @@ if (!$data || empty($data['proyecto']) || empty($data['folio'])) {
 }
 
 // ─── Plantilla maestra ──────────────────────────────────────────────────────
-// Nuevo formato con ~27–30 hojas ubicado en /shared
-$templatePath = __DIR__ . '/../../shared/Bitacora de campo tilt up_13022026.xlsx';
+// Buscar en shared (repo/deploy) y, si no existe, usar uploads/formatos
+$templateCandidates = [
+    __DIR__ . '/../../shared/Bitacora de campo tilt up_13022026.xlsx', // repo local
+    __DIR__ . '/../shared/Bitacora de campo tilt up_13022026.xlsx', // deploy /TiltUp/shared
+    '/var/www/html/TiltUp/shared/Bitacora de campo tilt up_13022026.xlsx',
+    '/srv/http/TiltUp/shared/Bitacora de campo tilt up_13022026.xlsx',
+];
 
-// Fallback: buscar la más reciente en uploads/formatos
-if (!file_exists($templatePath)) {
-    $fallback = glob(__DIR__ . '/../../uploads/formatos/*Bitacora*.xlsx');
-    if ($fallback) {
-        usort($fallback, function ($a, $b) {
+$templatePath = '';
+foreach ($templateCandidates as $candidate) {
+    if (file_exists($candidate)) {
+        $templatePath = $candidate;
+        break;
+    }
+}
+
+// Fallbacks: buscar la más reciente en uploads/formatos del proyecto y docroots comunes
+if (!$templatePath) {
+    $candidates = [];
+    $candidates = array_merge($candidates, glob(__DIR__ . '/../../uploads/formatos/*Bitacora*.xlsx') ?: []);
+    $candidates = array_merge($candidates, glob(__DIR__ . '/../uploads/formatos/*Bitacora*.xlsx') ?: []);
+    $candidates = array_merge($candidates, glob('/var/www/html/TiltUp/uploads/formatos/*Bitacora*.xlsx') ?: []);
+    $candidates = array_merge($candidates, glob('/srv/http/TiltUp/uploads/formatos/*Bitacora*.xlsx') ?: []);
+
+    if ($candidates) {
+        usort($candidates, function ($a, $b) {
             return filemtime($b) - filemtime($a);
         });
-        $templatePath = $fallback[0];
+        $templatePath = $candidates[0];
     }
 }
 
 // ─── Mapeo por hoja (fila inicio + columnas) ───────────────────────────────
-$mappingPath = __DIR__ . '/../../shared/mapeo_bitacora.json';
 $sheetMappings = [];
-if (file_exists($mappingPath)) {
-    $json = file_get_contents($mappingPath);
-    $sheetMappings = json_decode($json, true) ?: [];
+$mappingCandidates = [
+    __DIR__ . '/../../shared/mapeo_bitacora.json', // repo local
+    __DIR__ . '/../shared/mapeo_bitacora.json', // deploy /TiltUp/shared
+    '/var/www/html/TiltUp/shared/mapeo_bitacora.json',
+    '/srv/http/TiltUp/shared/mapeo_bitacora.json',
+];
+
+foreach ($mappingCandidates as $mappingPath) {
+    if (file_exists($mappingPath)) {
+        $json = file_get_contents($mappingPath);
+        $sheetMappings = json_decode($json, true) ?: [];
+        if ($sheetMappings)
+            break;
+    }
 }
 
 if (!file_exists($templatePath)) {
@@ -252,8 +280,56 @@ if (isset($sheetMappings['C5'])) {
     fillSheetByMapping($hoja, $mapping, $rows, $propertyOrder);
 }
 
-// C6..C27: si existe mapeo y tenemos datos en $data['insertos'] (como fuente genérica), llenar por posición respetando columnas definidas
-for ($i = 6; $i <= 27; $i++) {
+// C6..C10: procesar explícitamente hoja por hoja usando datos de extras
+$sheetListExplicit = ['C6', 'C7', 'C8', 'C9', 'C10'];
+foreach ($sheetListExplicit as $name) {
+    // Si no hay mapeo cargado (entorno deploy sin shared/mapeo_bitacora.json), usar defaults mínimos
+    $mapping = $sheetMappings[$name] ?? ['fila_inicio_datos' => 6, 'columnas' => []];
+    $hoja = $spreadsheet->getSheetByName($name);
+    if (!$hoja)
+        continue;
+
+    $rows = $data['extras'][$name] ?? [];
+    if (!$rows)
+        continue;
+
+    // C6: escribir directamente en D/E (D6 en adelante = Cumple, E6 en adelante = Observaciones)
+    if ($name === 'C6') {
+        $startRow = intval($mapping['fila_inicio_datos'] ?? 6);
+        $rowIdx = $startRow;
+        foreach ($rows as $row) {
+            $values = is_array($row) ? array_values($row) : [];
+            $cumple = $values[3] ?? ($row['cumple'] ?? '');
+            $obs = $values[4] ?? ($row['observaciones'] ?? '');
+            try {
+                $hoja->setCellValue('D' . $rowIdx, $cumple);
+                $hoja->setCellValue('E' . $rowIdx, $obs);
+            }
+            catch (\Throwable $t) {
+            }
+            $rowIdx++;
+        }
+        continue;
+    }
+
+    $columns = array_keys($mapping['columnas'] ?? []);
+    $propertyOrder = [];
+
+    foreach ($columns as $idx => $colLetter) {
+        $propertyOrder[$idx] = $idx;
+    }
+
+    $normalizedRows = [];
+    foreach ($rows as $row) {
+        $values = is_array($row) ? array_values($row) : [];
+        $normalizedRows[] = $values;
+    }
+
+    fillSheetByMapping($hoja, $mapping, $normalizedRows, $propertyOrder);
+}
+
+// C11..C27: mantener el procesamiento genérico con fallback
+for ($i = 11; $i <= 27; $i++) {
     $name = 'C' . $i;
     if (!isset($sheetMappings[$name]))
         continue;
@@ -262,25 +338,24 @@ for ($i = 6; $i <= 27; $i++) {
     if (!$hoja)
         continue;
 
-    // Fuente genérica: insertos (por ahora), se mapea por posición de columnas
-    $rows = $data['insertos'] ?? [];
+    $rows = $data['extras'][$name] ?? null;
+    if (!$rows || !is_array($rows) || count($rows) === 0) {
+        $rows = $data['insertos'] ?? [];
+        $rows = array_map('array_values', $rows);
+    }
+
     if (!$rows)
         continue;
 
-    // Construir propertyOrder con tantos elementos como columnas, usando índices numéricos de las filas de insertos
     $columns = array_keys($mapping['columnas'] ?? []);
     $propertyOrder = [];
     foreach ($columns as $idx => $colLetter) {
-        // si el insert tiene clave numérica, usamos la posición
-        $propertyOrder[$idx] = $idx; // index-based; we will pull by numeric index
+        $propertyOrder[$idx] = $idx;
     }
 
-    // Adapt rows to numeric-index array
     $normalizedRows = [];
     foreach ($rows as $row) {
-        // ensure numeric ordering of values
-        $values = array_values($row);
-        $normalizedRows[] = $values;
+        $normalizedRows[] = is_array($row) ? array_values($row) : [];
     }
 
     fillSheetByMapping($hoja, $mapping, $normalizedRows, $propertyOrder);

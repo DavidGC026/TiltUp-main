@@ -266,8 +266,17 @@
         }
     },
     "C22": {
-        "fila_inicio_datos": "No detectada",
-        "columnas": {}
+        "fila_inicio_datos": 6,
+        "columnas": {
+            "A": "C",
+            "B": "Ubicación",
+            "C": "Ancho de junta",
+            "D": "Profundidad de sellado",
+            "E": "Continuidad de sellante",
+            "F": "Adherencia al sustrato",
+            "G": "Tiempo de fraguado cumplido",
+            "H": "Observaciones"
+        }
     },
     "C23": {
         "fila_inicio_datos": 6,
@@ -309,8 +318,13 @@
         }
     },
     "C26": {
-        "fila_inicio_datos": "No detectada",
-        "columnas": {}
+        "fila_inicio_datos": 6,
+        "columnas": {
+            "D": "Actividad o área de trabajo",
+            "E": "Accionamientos mecánicos",
+            "F": "Documentación disponible",
+            "G": "Observaciones"
+        }
     },
     "C27": {
         "fila_inicio_datos": 6,

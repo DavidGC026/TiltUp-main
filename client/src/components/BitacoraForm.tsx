@@ -118,27 +118,40 @@ export interface BitacoraPayload {
 const EXTRA_SHEETS: { code: string; title: string; columns: string[] }[] = [
     { code: "C6", title: "C6 — Nivelación y compactación del terreno", columns: ["Concepto", "Valor de referencia", "Medición en campo", "Cumple (Si/No)", "Observaciones"] },
     { code: "C7", title: "C7 — Excavación para cimentación", columns: ["N° de elemento", "Profundidad de cimentación", "Recubrimiento de acero en suelo", "Recubrimiento de acero en cimbra metálica", "Alineación de insertos/anclajes", "Nivelación de placas de anclaje", "Torque de pernos (ej. M24)", "Observaciones"] },
-    { code: "C8", title: "C8", columns: ["Elemento", "Capacidad de soporte de accesos", "Pendiente máxima de accesos", "Ancho libre de acceso", "Radio de giro mínimo", "Nivelación de placas de anclaje", "Plataforma para grúa", "Observaciones"] },
-    { code: "C9", title: "C9", columns: ["N° de elemento", "Ubicación", "Planicidad", "Juntas sin fugas", "Aplicación de liberador", "Dimensiones", "Anclaje del molde estable", "Cumple (Si /No)", "Observaciones"] },
-    { code: "C10", title: "C10", columns: ["N° de elemento", "Ubicación", "Recubrimiento caras expuestas ≥20 mm", "Recubrimiento bordes inferiores ≥25 mm", "Traslape ≥40 diámetros", "Separación ±10 mm", "Espaciadores ≤1 m", "Limpieza de acero", "Cumple (Si /No)", "Observaciones"] },
-    { code: "C11", title: "C11", columns: ["N° de elemento", "Ubicación", "Posición insertos ±6 mm H / ±3 mm V", "Alineación 90° ±2°", "Anclajes izaje asegurados", "Separación bordes ≥75 mm", "Limpieza insertos", "Observaciones"] },
-    { code: "C12", title: "C12", columns: ["N° de elemento", "Ubicación", "Revenimiento", "Resistencia f’c", "Tiempo descarga <90 min", "Altura colocación ≤1.5 m", "Tiempo de vibrado", "Acabado superficial", "Observaciones"] },
-    { code: "C13", title: "C13", columns: ["N° de elemento", "Ubicación", "Inicio curado", "Método de curado", "Tiempo curado", "Temperatura 10–32°C", "f'c en desmolde", "Observaciones"] },
-    { code: "C14", title: "C14", columns: ["N° de elemento", "Ubicación", "Capacidad grúa", "Altura y alcance correcta", "Cables, ganchos y poleas sin desgaste", "Certificación y mantenimiento vigente", "Nivelación de grúa estable", "Observaciones"] },
-    { code: "C15", title: "C15", columns: ["N° de elemento", "Ubicación", "Zona de seguridad delimitada", "Señalización y comunicación", "EPP obligatorio", "Plan de emergencia", "Condición de viento", "Observaciones"] },
-    { code: "C16", title: "C16", columns: ["N° de elemento", "Ubicación", "Desviación horizontal ±5 mm", "Desviación vertical ±3 mm", "Nivelación respecto fundación ±2 mm", "Instrumentos usados", "Observaciones"] },
-    { code: "C17", title: "C17", columns: ["N° de elemento", "Ubicación", "Torque pernos de anclaje", "Separación anclajes ±3 mm", "Conexión entre paneles alineación ±3 mm", "Recubrimiento acero", "Verificación visual completa", "Observaciones"] },
-    { code: "C18", title: "C18", columns: ["N° de elemento", "Ubicación", "Número de apuntalamientos según diseño", "Altura máxima desplazamiento ±5 mm", "Suelo compactado ≥95%", "Capacidad apuntalamiento ≥ carga lateral", "Inspección cuñas y soportes", "Observaciones"] },
-    { code: "C19", title: "C19", columns: ["N° de elemento", "Ubicación", "Alineación horizontal ±3 mm", "Alineación vertical ±2 mm", "Recubrimiento acero", "Soldaduras/conectores completos", "Separación conectores según plano ±5 mm", "Observaciones"] },
-    { code: "C20", title: "C20", columns: ["N° de elemento", "Ubicación", "Revisión de planos instalaciones", "Penetraciones alineadas ±5 mm", "Protecciones temporales aplicadas", "Secuencia de instalación coordinada", "Registro de coordinación firmado", "Observaciones"] },
-    { code: "C21", title: "C21", columns: ["N° de elemento", "Ubicación", "Torque de pernos según diseño", "Alineación ±3 mm", "Recubrimiento acero", "Inspección visual completa", "Certificación de material revisada", "Observaciones"] },
-    { code: "C23", title: "C23", columns: ["N° de elemento", "Ubicación", "Planicidad ±3 mm /3 m", "Grietas superficiales ≤0.3 mm", "Manchas/eflorescencias corregidas", "Bordes/esquinas ±5 mm", "Reparaciones correctas", "Observaciones"] },
-    { code: "C24", title: "C24", columns: ["N° de elemento", "Ubicación", "Espesor de recubrimiento según especificación", "Cobertura uniforme", "Adherencia verificada", "Protecciones zonas críticas", "Tiempo de secado/curado cumplido", "Observaciones"] },
-    { code: "C25", title: "C25", columns: ["N° de elemento", "Ubicación", "Eléctrico funcional", "Hidráulico funcional", "Accionamientos mecánicos", "Documentación disponible", "Registro de pruebas firmado", "Observaciones"] },
-    { code: "C27", title: "C27", columns: ["Nombre", "Actividad o área de trabajo", "Uso de equipo adecuado (Si / No)", "Observaciones"] },
+    { code: "C8", title: "C8 — Rutas de acceso para grúas", columns: ["Elemento", "Capacidad de soporte de accesos", "Pendiente máxima de accesos", "Ancho libre de acceso", "Radio de giro mínimo", "Nivelación de placas de anclaje", "Plataforma para grúa", "Observaciones"] },
+    { code: "C9", title: "C9 — Cimbrado de losa de colado", columns: ["N° de elemento", "Ubicación", "Planicidad", "Juntas sin fugas", "Aplicación de liberador", "Dimensiones", "Anclaje del molde estable", "Cumple (Si /No)", "Observaciones"] },
+    { code: "C10", title: "C10 — Armado de acero en superficies de colado", columns: ["N° de elemento", "Ubicación", "Recubrimiento caras expuestas ≥20 mm", "Recubrimiento bordes inferiores ≥25 mm", "Traslape ≥40 diámetros", "Separación ±10 mm", "Espaciadores ≤1 m", "Limpieza de acero", "Cumple (Si /No)", "Observaciones"] },
+    { code: "C11", title: "C11 — Insertos para riostras", columns: ["N° de elemento", "Ubicación", "Posición insertos ±6 mm H / ±3 mm V", "Alineación 90° ±2°", "Anclajes izaje asegurados", "Separación bordes ≥75 mm", "Limpieza insertos", "Observaciones"] },
+    { code: "C12", title: "C12 — Colocación de colado en losas", columns: ["N° de elemento", "Ubicación", "Revenimiento", "Resistencia f’c", "Tiempo descarga <90 min", "Altura colocación ≤1.5 m", "Tiempo de vibrado", "Acabado superficial", "Observaciones"] },
+    { code: "C13", title: "C13 — Curado y desmolde", columns: ["N° de elemento", "Ubicación", "Inicio curado", "Método de curado", "Tiempo curado", "Temperatura 10–32°C", "f'c en desmolde", "Observaciones"] },
+    { code: "C14", title: "C14 — Verificación de grúas y equipos de izaje", columns: ["N° de elemento", "Ubicación", "Capacidad grúa", "Altura y alcance correcta", "Cables, ganchos y poleas sin desgaste", "Certificación y mantenimiento vigente", "Nivelación de grúa estable", "Observaciones"] },
+    { code: "C15", title: "C15 — Coordinación de maniobras y medidas de seguridad", columns: ["N° de elemento", "Ubicación", "Zona de seguridad delimitada", "Señalización y comunicación", "EPP obligatorio", "Plan de emergencia", "Condición de viento", "Observaciones"] },
+    { code: "C16", title: "C16 — Alineación y nivelación de los paneles", columns: ["N° de elemento", "Ubicación", "Desviación horizontal ±5 mm", "Desviación vertical ±3 mm", "Nivelación respecto fundación ±2 mm", "Instrumentos usados", "Observaciones"] },
+    { code: "C17", title: "C17 — Posición de conexiones estructurales", columns: ["N° de elemento", "Ubicación", "Torque pernos de anclaje", "Separación anclajes ±3 mm", "Conexión entre paneles alineación ±3 mm", "Recubrimiento acero", "Verificación visual completa", "Observaciones"] },
+    { code: "C18", title: "C18 — Apuntalamiento temporal", columns: ["N° de elemento", "Ubicación", "Número de apuntalamientos según diseño", "Altura máxima desplazamiento ±5 mm", "Suelo compactado ≥95%", "Capacidad apuntalamiento ≥ carga lateral", "Inspección cuñas y soportes", "Observaciones"] },
+    { code: "C19", title: "C19 — Uniones entre paneles y refuerzos estructurales", columns: ["N° de elemento", "Ubicación", "Alineación horizontal ±3 mm", "Alineación vertical ±2 mm", "Recubrimiento acero", "Soldaduras/conectores completos", "Separación conectores según plano ±5 mm", "Observaciones"] },
+    { code: "C20", title: "C20 — Instalaciones eléctricas e hidráulicas", columns: ["N° de elemento", "Ubicación", "Revisión de planos instalaciones", "Penetraciones alineadas ±5 mm", "Protecciones temporales aplicadas", "Secuencia de instalación coordinada", "Registro de coordinación firmado", "Observaciones"] },
+    { code: "C21", title: "C21 — Conexiones y anclajes", columns: ["N° de elemento", "Ubicación", "Torque de pernos según diseño", "Alineación ±3 mm", "Recubrimiento acero", "Inspección visual completa", "Certificación de material revisada", "Observaciones"] },
+    { code: "C22", title: "C22 — Juntas y sellados", columns: ["C", "Ubicación", "Ancho de junta", "Profundidad de sellado", "Continuidad de sellante", "Adherencia al sustrato", "Tiempo de fraguado cumplido", "Observaciones"] },
+    { code: "C23", title: "C23 — Acabados superficiales y reparaciones menores", columns: ["N° de elemento", "Ubicación", "Planicidad ±3 mm /3 m", "Grietas superficiales ≤0.3 mm", "Manchas/eflorescencias corregidas", "Bordes/esquinas ±5 mm", "Reparaciones correctas", "Observaciones"] },
+    { code: "C24", title: "C24 — Recubrimientos y protecciones especiales", columns: ["N° de elemento", "Ubicación", "Espesor de recubrimiento según especificación", "Cobertura uniforme", "Adherencia verificada", "Protecciones zonas críticas", "Tiempo de secado/curado cumplido", "Observaciones"] },
+    { code: "C25", title: "C25 — Pruebas funcionales de instalaciones", columns: ["N° de elemento", "Ubicación", "Eléctrico funcional", "Hidráulico funcional", "Accionamientos mecánicos", "Documentación disponible", "Registro de pruebas firmado", "Observaciones"] },
+    { code: "C26", title: "C26 — Implementación de protocolos de seguridad", columns: ["Equipo de Protección Personal", "(columna vacía)", "(columna vacía)", "Actividad o área de trabajo", "Accionamientos mecánicos", "Documentación disponible", "Observaciones"] },
+    { code: "C27", title: "C27 — Control de uso de EPP", columns: ["Nombre", "Actividad o área de trabajo", "Uso de equipo adecuado (Si / No)", "Observaciones"] },
 ];
 
 type ExtraRow = { id: string; values: string[] };
+
+const C6_DEFAULT_ROWS: string[][] = [
+    ["Compactación", "≥ 95% Proctor modificado", "%", "", ""],
+    ["Humedad de compactación", "±2% de la humedad óptima", "%", "", ""],
+    ["Nivelación del terreno", "±2 cm en 10 m", "cm", "", ""],
+    ["Capacidad de carga del suelo", "≥ 1.5 kg/cm²", "kg/cm²", "", ""],
+    ["Precisión de alineación", "±5 mm", "mm", "", ""],
+    ["Error acumulado total", "≤10 mm", "mm", "", ""],
+    ["Cota de nivel", "±5 mm", "mm", "", ""],
+    ["Testigos fijos y protegidos", "Sí / No", "", "", ""],
+];
 
 interface BitacoraFormProps {
     onClose: () => void;
@@ -300,7 +313,14 @@ export function BitacoraForm({ onClose, apiBase }: BitacoraFormProps) {
         const initial: Record<string, ExtraRow[]> = {};
         EXTRA_SHEETS.forEach((sheet) => {
             const cols = sheet.columns.length;
-            initial[sheet.code] = [{ id: uid(), values: Array(cols).fill("") }];
+            if (sheet.code === "C6") {
+                initial[sheet.code] = C6_DEFAULT_ROWS.map((values) => ({
+                    id: uid(),
+                    values: [...values],
+                }));
+            } else {
+                initial[sheet.code] = [{ id: uid(), values: Array(cols).fill("") }];
+            }
         });
         return initial;
     });
@@ -310,6 +330,8 @@ export function BitacoraForm({ onClose, apiBase }: BitacoraFormProps) {
     // Helpers extras
     const updateExtraCell = (sheetCode: string, rowId: string, colIndex: number, value: string) => {
         setExtras((prev) => {
+            if (sheetCode === "C6" && colIndex <= 2)
+                return prev;
             const rows = prev[sheetCode] || [];
             const nextRows = rows.map((r) => r.id === rowId ? { ...r, values: r.values.map((v, i) => i === colIndex ? value : v) } : r);
             return { ...prev, [sheetCode]: nextRows };
@@ -318,6 +340,7 @@ export function BitacoraForm({ onClose, apiBase }: BitacoraFormProps) {
 
     const addExtraRow = (sheetCode: string) => {
         setExtras((prev) => {
+            if (sheetCode === "C6") return prev;
             const cols = EXTRA_SHEETS.find((s) => s.code === sheetCode)?.columns.length || 0;
             const nextRow: ExtraRow = { id: uid(), values: Array(cols).fill("") };
             return { ...prev, [sheetCode]: [...(prev[sheetCode] || []), nextRow] };
@@ -326,6 +349,7 @@ export function BitacoraForm({ onClose, apiBase }: BitacoraFormProps) {
 
     const removeExtraRow = (sheetCode: string, rowId: string) => {
         setExtras((prev) => {
+            if (sheetCode === "C6") return prev;
             const rows = prev[sheetCode] || [];
             if (rows.length <= 1) return prev; // deja al menos una fila
             return { ...prev, [sheetCode]: rows.filter((r) => r.id !== rowId) };
@@ -754,6 +778,73 @@ export function BitacoraForm({ onClose, apiBase }: BitacoraFormProps) {
                         </table>
                     </div>
                 </CollapsibleSection>
+
+                {/* ═══════════════ C6–C27 — HOJAS EXTRAS SEGÚN MAPEO ═══════════════ */}
+                {EXTRA_SHEETS.map((sheet) => {
+                    const rows = extras[sheet.code] || [];
+                    const isC6 = sheet.code === "C6";
+                    return (
+                        <CollapsibleSection key={sheet.code} title={`${sheet.code} — ${sheet.title}`}>
+                            <div className="flex items-center justify-between mb-3">
+                                <p className="text-sm text-muted-foreground">Completa las columnas según la plantilla detectada para la hoja {sheet.code}.</p>
+                                <div className="flex gap-2">
+                                    {!isC6 && (
+                                        <Button type="button" variant="outline" size="sm" onClick={() => addExtraRow(sheet.code)} className="gap-1">
+                                            <Plus className="h-4 w-4" /> Agregar fila
+                                        </Button>
+                                    )}
+                                    <span className="text-xs text-muted-foreground self-center">Filas: {rows.length}</span>
+                                </div>
+                            </div>
+                            <div className="overflow-x-auto">
+                                <table className="min-w-[900px] w-full text-sm">
+                                    <thead>
+                                        <tr className="border-b text-xs font-medium text-muted-foreground">
+                                            {sheet.columns.map((col, idx) => (
+                                                <th key={idx} className="text-left p-2 whitespace-nowrap">{col}</th>
+                                            ))}
+                                            <th className="w-12" />
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {rows.map((row) => (
+                                            <tr key={row.id} className="border-b last:border-0">
+                                                {row.values.map((val, colIdx) => {
+                                                    const isReadOnlyC6Col = isC6 && colIdx <= 2;
+                                                    return (
+                                                        <td key={`${row.id}-${colIdx}`} className="p-1">
+                                                            <Input
+                                                                className="h-8 text-xs"
+                                                                value={val}
+                                                                readOnly={isReadOnlyC6Col}
+                                                                disabled={isReadOnlyC6Col}
+                                                                onChange={(e) => updateExtraCell(sheet.code, row.id, colIdx, e.target.value)}
+                                                            />
+                                                        </td>
+                                                    );
+                                                })}
+                                                <td className="p-1 text-center align-middle">
+                                                    {!isC6 && (
+                                                        <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="text-destructive hover:bg-destructive/10"
+                                                            onClick={() => removeExtraRow(sheet.code, row.id)}
+                                                            disabled={rows.length <= 1}
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </CollapsibleSection>
+                    );
+                })}
 
                 {/* ═══════════════ SUBMIT ═══════════════ */}
                 <div className="flex justify-end pt-4 border-t">
